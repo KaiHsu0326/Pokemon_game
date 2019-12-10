@@ -1,6 +1,7 @@
 import pygame, sys, os, random, time
 from Class.pokemon import POKEDEX, Pokemon, Battle, Pokedex
 from Class.map import Map, X_RANGE, Y_RANGE, MAPS
+from Class.bag import Bag
 
 class Player():
     def __init__(self,pos):
@@ -118,6 +119,7 @@ choose_move = pos_move = False
 BASE_SURF = pygame.display.set_mode((X_RANGE, Y_RANGE))
 fontObj = pygame.font.Font('freesansbold.ttf', 35)
 current_map = Map(1,-1)
+bag = Bag()
 player,exits= set_state(current_map.x_screen, current_map.y_screen, current_map.exits)
 init_p = [Pokemon(1,1),Pokemon(7,1),Pokemon(4,1)]
 pokedex = 0
@@ -196,7 +198,8 @@ while True:
         BASE_SURF.blit(bat_surf, (0,0))
 
     elif current_situation() is 'bag': 
-        BASE_SURF.fill((125, 125,0))
+        bag_surf = bag.draw_bag(move_to)
+        BASE_SURF.blit(bag_surf, (0,0))
 
     elif current_situation() is 'pokedex' :
         BASE_SURF.fill((125, 0,125))

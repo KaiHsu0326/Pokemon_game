@@ -83,7 +83,7 @@ class Pokemon():
             self.frame_num += 1
         return tmp
 
-BATTLE_IMGAE = {'battle_bg' : pygame.image.load(dir_path+'/../image/battle_background.png'),
+BATTLE_IMGAE = {'battle_bg' : pygame.image.load(dir_path+'/../image/battle_bg.png'),
                 'text' : pygame.image.load(dir_path+'/../image/battle_text.png'),
                 'opp_hp' : pygame.image.load(dir_path+'/../image/opp_hp.png'),
                 'my_hp' : pygame.image.load(dir_path+'/../image/my_hp.png'),
