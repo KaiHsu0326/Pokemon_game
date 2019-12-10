@@ -1,9 +1,8 @@
-import pygame, sys, os, random, time
+import pygame, sys, os, random, time, json
 from .map import X_RANGE, Y_RANGE
 
 POKEDEX = { 1:'Bulbasaur', 2:'Ivysaur', 3:'Venusaur', 4:'Charmander', 5:'Charmeleon',
             6:'Charizard', 7:'Squirtle', 8:'Wartortle', 9:'Blastoise'}
-
 
 LEVEL_TOP =[0,0]
 level = 2
@@ -17,9 +16,11 @@ while level < 40:
 
 LATENCY = 1
 dir_path = os.path.dirname(os.path.abspath(__file__))
+# json_data = open(dir_path+'/Pokemon_Data.js').read()
+# data = json.loads(json_data)
 
 class Move():
-    def __init__(self, name, total_num)):
+    def __init__(self, name, total_num):
         self.name = name
         self.left_num = self.total_num = total_num
 
@@ -27,26 +28,29 @@ class Move():
         self.left_num -= 1
         return self.name
 
-class Stats():
+# class Stats():
 
-    POKE_STATS = {'unevol':[45,49,(2,3),16], 'fir_evol': [60,62,(2,3),32], 'sec_evol': [80,82,(1,2)]}
+#     POKE_STATS = {'unevol':[45,49,(2,3),16], 'fir_evol': [60,62,(2,3),32], 'sec_evol': [80,82,(1,2)]}
 
-    UNEVOL = ['Bulbasaur','Charmander','Squirtle']
-    FIR_EVOL = ['Ivysaur','Charmeleon','Wartortle']
-    SEC_EVOL = ['Venusaur','Charizard','Blastoise']
+#     UNEVOL = ['Bulbasaur','Charmander','Squirtle']
+#     FIR_EVOL = ['Ivysaur','Charmeleon','Wartortle']
+#     SEC_EVOL = ['Venusaur','Charizard','Blastoise']
 
-    TYPE = {'Bulbasaur': 'grass', 'Ivysaur': 'grass', 'Venusaur': 'grass',
-            'Charmander': 'fire', 'Charmeleon': 'fire', 'Charizard': 'fire',
-            'Squirtle': 'water', 'Wartortle': 'water', 'Blastoise': 'water'}
+#     TYPE = {'Bulbasaur': 'grass', 'Ivysaur': 'grass', 'Venusaur': 'grass',
+#             'Charmander': 'fire', 'Charmeleon': 'fire', 'Charizard': 'fire',
+#             'Squirtle': 'water', 'Wartortle': 'water', 'Blastoise': 'water'}
     
-    def __init__(self, name):
-        self.name = name
-        self.type = TYPE['name']
+#     def __init__(self, name):
+#         self.name = name
+#         self.type = TYPE['name']
 
-    def get_stats(self):
-        if self.name in UNEVOL:
-            self.hp = POKE_STATS['unevol'][0]
-            self.attack = POKE_STATS['unevol'][1]
+#     def get_stats(self):
+#         if self.name in UNEVOL:
+#             self.hp = self.POKE_STATS['unevol'][0]
+#             self.attack = self.POKE_STATS['unevol'][1]
+#             self.add_value = self.POKE_STATS[2]
+#             self.level_top = self.POKE_STATS[2]
+
 
 class Pokemon():
     image_path = dir_path+'/../image/poke_image'
@@ -62,12 +66,12 @@ class Pokemon():
         self.f_size = self.image_front[0].get_rect().size
         self.b_size = self.image_back[0].get_rect().size
         self.level = level
-        if self.name in UNEVOL:self.stats = POKE_STATS['unevol']
-        if self.name in FIR_EVOL:self.stats = POKE_STATS['fir_evol']
-        if self.name in SEC_EVOL:self.stats = POKE_STATS['sec_evol']
-        self.hp = self.stats[0]+(level-1)*random.randint(self.stats[2][0],self.stats[2][1])
-        self.attack = self.stats[1]+(level-1)*random.randint(self.stats[2][0],self.stats[2][1])
-        self.move = type_move(TYPE[self.name])
+        # if self.name in UNEVOL:self.stats = POKE_STATS['unevol']
+        # if self.name in FIR_EVOL:self.stats = POKE_STATS['fir_evol']
+        # if self.name in SEC_EVOL:self.stats = POKE_STATS['sec_evol']
+        # self.hp = self.stats[0]+(level-1)*random.randint(self.stats[2][0],self.stats[2][1])
+        # self.attack = self.stats[1]+(level-1)*random.randint(self.stats[2][0],self.stats[2][1])
+        # self.move = type_move(TYPE[self.name])
         self.exp = LEVEL_TOP[level]
         
     def type_move(self, pkm_type):

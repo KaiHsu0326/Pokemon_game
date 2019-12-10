@@ -39,7 +39,8 @@ class Interface():
         self.name = name
         self.pos = pos
         if name == 'Poké balls':
-            self.items = [Items('PokeBalls', 5, 'Catching wild Pokémon props', BAG_IMGAE['poke_balls'])]
+            self.items = [Items('PokeBalls', 5, 'Catching wild Pokémon props', BAG_IMGAE['poke_balls']),
+                        Items('PokeBalls', 5, 'Catching wild Pokémon props', BAG_IMGAE['poke_balls'])]
         else :self.items = []
 
 
@@ -49,6 +50,7 @@ class Bag():
         self.balls = None
         self.items = None
         self.current_interface = 1
+        self.current_item = 0
         self.interfaces = [Interface('Items',(95,50)),Interface('Poké balls',(65,50))]
 
     # def draw_bag_items(self,bag_surf):
@@ -81,17 +83,23 @@ class Bag():
         bag_surf.blit(pygame.transform.scale(BAG_IMGAE['bag_bg'],(800,600)), (0,0))
         if move_to == 'LEFT' and self.current_interface > 0: self.current_interface -= 1
         elif move_to == 'RIGHT' and self.current_interface < len(self.interfaces)-1 : self.current_interface += 1
+        elif move_to == 'UP' and self.current_item > 0: self.current_item -= 1
+        elif move_to == 'DOWN' and self.current_item < len(self.interfaces[self.current_interface].items) -1 : self.current_item += 1
+
 
         display_text(bag_surf, self.interfaces[self.current_interface].name,self.interfaces[self.current_interface].pos)
         self.draw_bag_items(bag_surf, self.interfaces[self.current_interface])
         return bag_surf
 
     def draw_bag_items(self,bag_surf, interface):
-        for i in interface.items:         
-            bag_surf.blit(pygame.transform.scale(i.image,(50,50)), (350,35)) #  上方圖片
-            display_text(bag_surf, i.name, (425,50))
-            display_text(bag_surf, 'X'+ str(i.num), (700,50)) # 幾個 ex. X5
-            bag_surf.blit(pygame.transform.scale(i.image,(50,50)),(35,500)) # 下方圖片
-            display_text(bag_surf, i.description, (150, 500)) # 下方圖片說明
-        
-            pygame.draw.rect(bag_surf, (255, 0, 0), ((290, 25), (485, 65)), 5)
+        if len(interface.items) is not 0 :
+            index = 0
+            for i in interface.items:         
+                bag_surf.blit(pygame.transform.scale(i.image,(50,50)), (350,35+index*60)) #  上方圖片
+                display_text(bag_surf, i.name, (425,50+index*60))    
+                display_text(bag_surf, 'X'+ str(i.num), (700,50+index*60)) # 幾個 ex. X5 
+                index += 1
+                
+            bag_surf.blit(pygame.transform.scale(interface.items[self.current_item].image,(50,50)),(35,500)) # 下方圖片
+            display_text(bag_surf, interface.items[self.current_item].description, (150, 500)) # 下方圖片說明
+            pygame.draw.rect(bag_surf, (255, 0, 0), ((290, 25+(self.current_item*63)), (485, 65)), 5)

@@ -142,6 +142,9 @@ while True:
             if e.key == pygame.K_DOWN:
                 if current_situation() is not 'begin': move_to = 'DOWN'
 
+            if e.key == pygame.K_b and current_situation() is 'walking':
+                sit_num = 5
+
             if e.key == pygame.K_x and (current_situation() is 'bag' or current_situation() is 'pokedex') :
                 sit_num = prior_sit_num
 
