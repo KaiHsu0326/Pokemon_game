@@ -14,51 +14,26 @@ while level < 40:
     add_value += 10
     level += 1
 
-LATENCY = 1
 dir_path = os.path.dirname(os.path.abspath(__file__))
-# json_data = open(dir_path+'/Pokemon_Data.js').read()
-# data = json.loads(json_data)
+json_data = open(dir_path+'/pokemon_data.json').read()
+poke_data = json.loads(json_data)
 
 class Move():
-    def __init__(self, name, total_num):
+    def __init__(self, name, total_num, type, desc):
         self.name = name
         self.left_num = self.total_num = total_num
+        self.type = type
+        self.desc = desc
 
     def use_move(self) :
         self.left_num -= 1
-        return self.name
-
-# class Stats():
-
-#     POKE_STATS = {'unevol':[45,49,(2,3),16], 'fir_evol': [60,62,(2,3),32], 'sec_evol': [80,82,(1,2)]}
-
-#     UNEVOL = ['Bulbasaur','Charmander','Squirtle']
-#     FIR_EVOL = ['Ivysaur','Charmeleon','Wartortle']
-#     SEC_EVOL = ['Venusaur','Charizard','Blastoise']
-
-#     TYPE = {'Bulbasaur': 'grass', 'Ivysaur': 'grass', 'Venusaur': 'grass',
-#             'Charmander': 'fire', 'Charmeleon': 'fire', 'Charizard': 'fire',
-#             'Squirtle': 'water', 'Wartortle': 'water', 'Blastoise': 'water'}
-    
-#     def __init__(self, name):
-#         self.name = name
-#         self.type = TYPE['name']
-
-#     def get_stats(self):
-#         if self.name in UNEVOL:
-#             self.hp = self.POKE_STATS['unevol'][0]
-#             self.attack = self.POKE_STATS['unevol'][1]
-#             self.add_value = self.POKE_STATS[2]
-#             self.level_top = self.POKE_STATS[2]
 
 
 class Pokemon():
     image_path = dir_path+'/../image/poke_image'
     image_front = []
     image_back = []
-    stats = []
     frame_num = 0
-    late = 0
 
     def __init__(self,num, level):
         self.name = POKEDEX[num]
@@ -66,25 +41,25 @@ class Pokemon():
         self.f_size = self.image_front[0].get_rect().size
         self.b_size = self.image_back[0].get_rect().size
         self.level = level
-        # if self.name in UNEVOL:self.stats = POKE_STATS['unevol']
-        # if self.name in FIR_EVOL:self.stats = POKE_STATS['fir_evol']
-        # if self.name in SEC_EVOL:self.stats = POKE_STATS['sec_evol']
-        # self.hp = self.stats[0]+(level-1)*random.randint(self.stats[2][0],self.stats[2][1])
-        # self.attack = self.stats[1]+(level-1)*random.randint(self.stats[2][0],self.stats[2][1])
-        # self.move = type_move(TYPE[self.name])
-        self.exp = LEVEL_TOP[level]
+        self.remain_blood = self.hp = poke_data[self.name]['hp']+(level-1)*random.randint(poke_data[self.name]['add_value'][0],poke_data[self.name]['add_value'][1])
+        self.attack = poke_data[self.name]['attack']+(level-1)*random.randint(poke_data[self.name]['add_value'][0],poke_data[self.name]['add_value'][1])
+        self.defense = poke_data[self.name]['defense']+(level-1)*random.randint(poke_data[self.name]['add_value'][0],poke_data[self.name]['add_value'][1])
+        self.move = self.move_type(poke_data[self.name]['type'])
+        self.exp = 0
         
-    def type_move(self, pkm_type):
+    def move_type(self, pkm_type):
         move = []
         if pkm_type == 'grass':
-            move = [Move('attack1',30),('attack2',20),('attack3',10),('attack4',5)]
+            move = [Move('attack1', 30, 'grass', 'entry move'),Move('attack2',20, 'grass', 'intermediate move'),
+                    Move('attack3',10, 'grass', 'andvanced move'),Move('attack4',5, 'grass', 'super move')]
         elif pkm_type == 'fire':
-            move = [Move('attack5',30),('attack6',20),('attack7',10),('attack8',5)]
+            move = [Move('attack5',30, 'fire', 'entry move'),Move('attack6',20, 'fire', 'intermediate move'),
+                    Move('attack7',10, 'fire', 'andvanced move'),Move('attack8',5, 'fire', 'super move')]
         elif pkm_type == 'water':
-            move = [Move('attack9',30),('attack10',20),('attack11',10),('attack12',5)]
+            move = [Move('PoisonPowder',30, 'water', 'entry move'),Move('attack10',20, 'water', 'intermediate move'),
+                    Move('attack11',10, 'water', 'andvanced move'),Move('PoisonPowder',5, 'water', 'super move')]
 
         return move
-
 
     def load_image(self) :
         pok_front = []
@@ -104,16 +79,12 @@ class Pokemon():
         return pok_front, pok_back
 
     def get_frame_num(self, direction) :
-        if (direction == 'front' and self.frame_num >= len(self.image_front)) or \
-            (direction == 'back' and self.frame_num >= len(self.image_back)):
+        if (direction == 'front' and self.frame_num >= len(self.image_front)-1) or \
+            (direction == 'back' and self.frame_num >= len(self.image_back)-1):
             self.frame_num = 0
 
-        tmp = self.frame_num
-        self.late += 1
-        if self.late == LATENCY :
-            self.late = 0
-            self.frame_num += 1
-        return tmp
+        self.frame_num += 1
+        return self.frame_num
 
 BATTLE_IMGAE = {'battle_bg' : pygame.image.load(dir_path+'/../image/battle_bg.png'),
                 'text' : pygame.image.load(dir_path+'/../image/battle_text.png'),
@@ -137,7 +108,11 @@ def display_arrow(move_to, offset):
 class Battle():
     bg_size = BATTLE_IMGAE['battle_bg'].get_rect().size
     arrow_direction = [[(520, 485),(665, 485),(520, 535),(665, 535)],
-                       [(20, 485),(165, 485),(20, 535),(165, 535)]]
+                       [(40, 485),(235, 485),(40, 535),(235, 535)]]
+
+    my_pkm_hurt = opp_pkm_hurt = 0
+    has_level_up = set_exp = False
+    opp_move = exp_gained = 0
 
     def __init__(self, p1, p2) :
         self.my_pokemon = p1
@@ -147,13 +122,62 @@ class Battle():
         self.offset = 0
         self.display_move ={ True: p1.move, False: ['FIGHT','BAG','POKEMON','RUN'] } 
 
-    def display_battle_text(self, bat_surf, choose_move):
+    def display_battle_text(self, bat_surf):
         display_text(bat_surf, 'What should '+ self.my_pokemon.name + ' do?' , (100,515), 20) 
-        display_text(bat_surf, self.display_move[choose_move][0], (555,490), 20)
-        display_text(bat_surf, self.display_move[choose_move][1], (700,490), 20)
-        display_text(bat_surf, self.display_move[choose_move][2], (555,540), 20)
-        display_text(bat_surf, self.display_move[choose_move][3], (700,540), 20)
+        display_text(bat_surf, 'FIGHT', (555,490), 20)
+        display_text(bat_surf, 'BAG', (700,490), 20)
+        display_text(bat_surf, 'POKEMON', (555,540), 20)
+        display_text(bat_surf, 'RUN', (700,540), 20)
 
+    def display_move_text(self, bat_surf, offset) :
+        display_text(bat_surf, self.my_pokemon.move[0].name, (75,490), 20)
+        display_text(bat_surf, self.my_pokemon.move[1].name, (270,490), 20)
+        display_text(bat_surf, self.my_pokemon.move[2].name, (75,540), 20)
+        display_text(bat_surf, self.my_pokemon.move[3].name, (270,540), 20)
+
+        display_text(bat_surf, str(self.my_pokemon.move[offset].left_num) +' / '+ str(self.my_pokemon.move[offset].total_num), (550,490), 20)
+        display_text(bat_surf, self.my_pokemon.move[offset].type, (680,490), 20)
+        display_text(bat_surf, self.my_pokemon.move[offset].desc, (520,540), 20)
+
+    def cal_blood_lose_prcnt(self, face, width):
+        if face is 'back': 
+            return int(width*self.my_pokemon.remain_blood/self.my_pokemon.hp)
+
+        elif face is 'front': 
+            return int(width*self.opp_pokemon.remain_blood/self.opp_pokemon.hp)
+
+    def cal_exp_prcnt(self, gain_exp, width):
+        self.my_pokemon.exp += gain_exp
+        while self.my_pokemon.exp >= LEVEL_TOP[self.my_pokemon.level] :
+            self.my_pokemon.exp -= LEVEL_TOP[self.my_pokemon.level] 
+            self.my_pokemon.level += 1
+            self.has_level_up = True
+
+        return int(width*self.my_pokemon.exp/LEVEL_TOP[self.my_pokemon.level])
+
+    def cal_gain_exp(self):
+        if not self.set_exp :return 0
+        else :
+            self.exp_gained = (self.opp_pokemon.hp + self.opp_pokemon.attack + self.opp_pokemon.defense)//3
+            return self.exp_gained
+
+    def get_hurt(self, turn, choose) :
+        if turn is 'player' :
+            hurt = int(self.opp_pokemon.attack*(1+0.06*choose) - self.my_pokemon.defense)
+            if hurt <= 0 : hurt = random.randint(2,5)
+            if self.my_pokemon.level - self.opp_pokemon.level >= 4: hurt += 15
+            if self.my_pokemon.remain_blood > hurt:
+               self.my_pokemon.remain_blood -= hurt
+            else : self.my_pokemon.remain_blood = 0
+            print(f'get {hurt} points hurt and my pokemon hp remain : {self.my_pokemon.remain_blood} ')
+
+        elif turn is 'opponent':
+            hurt = int(self.my_pokemon.attack*(1+0.06*choose) - self.opp_pokemon.defense)
+            if hurt <= 0 : hurt = random.randint(2,5)          
+            if self.opp_pokemon.remain_blood > hurt:
+               self.opp_pokemon.remain_blood -= hurt
+            else : self.opp_pokemon.remain_blood = 0
+            print(f'get {hurt} points hurt and opp pokemon hp: {self.opp_pokemon.remain_blood}')
 
     def display_pokemon(self,bat_surf, poke_site, poke, image, face, hp_image_name, hp_site) :
         space_rect = pygame.Rect(poke_site)
@@ -164,12 +188,12 @@ class Battle():
         bat_surf.blit(pkm, rect)
         if face is 'back': 
             pygame.draw.rect(bat_surf,(73,83,87),(579,360,188,20))
-            pygame.draw.rect(bat_surf,(120,243,172),(579,360,188,20))
+            pygame.draw.rect(bat_surf,(120,243,172),(579,360,self.cal_blood_lose_prcnt(face, 188),20)) # green
             pygame.draw.rect(bat_surf,(73,83,87),(520,410,247,10))
-            pygame.draw.rect(bat_surf,(225,207,64),(520,410,247,10))
+            pygame.draw.rect(bat_surf,(225,207,64),(520,410,self.cal_exp_prcnt(self.cal_gain_exp(), 247),10))  # yellow
         elif face is 'front': 
             pygame.draw.rect(bat_surf,(73,83,87),(212,72,186,20))
-            pygame.draw.rect(bat_surf,(120,243,172),(212,72,186,20))
+            pygame.draw.rect(bat_surf,(120,243,172),(212,72,self.cal_blood_lose_prcnt(face, 186),20))  # green
         
         hp_surf = pygame.Surface((400, 100), pygame.SRCALPHA)
         hp_surf.blit(pygame.transform.scale(BATTLE_IMGAE[hp_image_name],(400,100)), (0,0))
@@ -184,7 +208,8 @@ class Battle():
         self.display_pokemon(bat_surf, (200,250, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325))
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(500,150)), (0,450)) # 第一塊方格 What should ... do
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
-        self.display_battle_text(bat_surf, choose_move)
+        if not choose_move : self.display_battle_text(bat_surf)
+        else : self.display_move_text(bat_surf,self.offset)
         self.offset = display_arrow(move_to, self.offset)
         bat_surf.blit(BATTLE_IMGAE['arrow_right'], self.arrow_direction[choose_move][self.offset]) 
         return bat_surf, self.offset
@@ -196,9 +221,52 @@ class Battle():
         self.display_pokemon(bat_surf, (200+my_x,250, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325))
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(500,150)), (0,450)) # 第一塊方格 What should ... do
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
-        if turn is 'player':display_text(bat_surf, self.my_pokemon.name + ' used ' + self.my_pokemon.move[choose] , (100,515), 20) 
-        elif turn is 'opponent':display_text(bat_surf, self.opp_pokemon.name + ' used ' + self.opp_pokemon.move[choose] , (100,515), 20) 
+        if turn is 'player' :
+            display_text(bat_surf, self.my_pokemon.name + ' used ' + self.my_pokemon.move[choose].name , (100,515), 20) 
+        elif turn is 'opponent' : 
+            display_text(bat_surf, self.opp_pokemon.name + ' used ' + self.opp_pokemon.move[choose].name , (100,515), 20) 
         return bat_surf
+
+    def draw_battle_over(self, my_shift, opp_shift):
+        bat_surf = pygame.Surface((X_RANGE, Y_RANGE))
+        bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['battle_bg'], (int(self.bg_size[0]*0.63), int(self.bg_size[1]*0.63))), (0,0))
+        if opp_shift < 10:
+            self.display_pokemon(bat_surf, (520,70+opp_shift*20, 135, 140), self.opp_pokemon, self.opp_pkm_image, 'front', 'opp_hp', (50,25)) 
+        if my_shift < 10:
+            self.display_pokemon(bat_surf, (200,250+my_shift*20, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325))
+        bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(500,150)), (0,450)) # 第一塊方格 What should ... do
+        bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
+        if my_shift is not 0 :
+            display_text(bat_surf, self.my_pokemon.name + ' dissolved!', (100,515), 20) 
+        elif my_shift > 200 or opp_shift > 200:
+            display_text(bat_surf, self.my_pokemon.name + ' grew to LV. ' + str(self.my_pokemon.level) + '!', (100,515), 20) 
+        elif 150 <= my_shift or 150 <= opp_shift:
+            display_text(bat_surf, self.my_pokemon.name + ' gained ' + str(self.exp_gained) + ' EXP. Points!', (100,515), 20) 
+        
+        else : 
+            display_text(bat_surf, self.opp_pokemon.name + ' dissolved!', (100,515), 20) 
+        return bat_surf
+
+    def have_left_move_num(self, choose):
+        if self.my_pokemon.move[choose].left_num > 0: return True
+        else :return False
+
+    def decrease_move_num(self, choose):
+        self.my_pokemon.move[choose].use_move()
+        self.offset = 0
+
+    def one_die(self):
+        if self.my_pokemon.remain_blood is 0 or self.opp_pokemon.remain_blood is 0:
+            return True
+        else : return False
+
+    def my_pokemon_die(self):
+        if self.my_pokemon.remain_blood is 0: return True
+        else : return False
+
+    def set_cal_exp(self):
+        self.set_exp = not self.set_exp
+
 
 class Pokedex():
     pokemon_list = []

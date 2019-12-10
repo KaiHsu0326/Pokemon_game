@@ -34,19 +34,6 @@ def set_state(x,y,all_exit):
     for e in all_exit:exits.append(Exit(e))
     return player, exits
 
-
-# def is_solved(selectors, stars):
-#     # TODO: check if the puzzle is solved
-#     for star in stars :
-#         in_selector = False
-#         for selector in selectors :
-#             if star.pos == selector.pos :
-#                 in_selector = True
-
-#         if not in_selector : return False
-
-#     return True
-
 def change_map(move_to) :
     if player.pos in current_map.exits and current_map.trigger_dir[current_map.exits[player.pos]] == move_to :
         return True
@@ -66,7 +53,7 @@ def draw_begin_cover() :
 
 def current_situation():
     global sit_num
-    situation = {1:'begin', 2:'choose_poke', 3:'walking', 4:'battle', 5:'bag', 6:'pokedex', 7:'battle_round'}
+    situation = {1:'begin', 2:'choose_poke', 3:'walking', 4:'battle', 5:'bag', 6:'pokedex', 7:'battle_round', 8:'other_situation'}
     return situation[sit_num]
 
 
@@ -113,7 +100,8 @@ def draw_choose_begin_pokemon(poke, move_to) :
         rect.midbottom = space_rect.bottomright  
     BASE_SURF.blit(arrow, rect)
 
-time_start = 0
+timer =  pokedex = 0
+turn = ''
 prior_sit_num = sit_num = choose = 1
 choose_move = pos_move = False
 BASE_SURF = pygame.display.set_mode((X_RANGE, Y_RANGE))
@@ -121,8 +109,7 @@ fontObj = pygame.font.Font('freesansbold.ttf', 35)
 current_map = Map(1,-1)
 bag = Bag()
 player,exits= set_state(current_map.x_screen, current_map.y_screen, current_map.exits)
-init_p = [Pokemon(1,1),Pokemon(7,1),Pokemon(4,1)]
-pokedex = 0
+init_p = [Pokemon(1,5),Pokemon(7,5),Pokemon(4,5)]
 
 while True:
     
@@ -157,9 +144,9 @@ while True:
                 elif current_situation() is 'battle':
                     if choose_move: 
                         sit_num = 7
-                        time_start = time.time()
+                        timer = 0
                         opp_attack = random.randint(0,3)
-                        choose_move = False
+                        
                     elif choose is 0 and not choose_move:choose_move = True
                     elif choose is 1:sit_num = 5
                     elif choose is 2:sit_num = 6
@@ -171,31 +158,50 @@ while True:
         draw_choose_begin_pokemon(init_p, move_to)
 
     elif current_situation() is 'battle_round' :
-        period = time.time() - time_start
-        attack_time = 1
-        hurt_time = 0.5
-        if period < attack_time:
+        if not battle.have_left_move_num(choose):
+            sit_num = 4
+            continue
+
+        attack_time = 40
+        hurt_time = 10
+        if timer < attack_time:
             bat_surf = battle.draw_battle_round('player',choose,0,0)
  
-        elif attack_time < period and period < attack_time+hurt_time:
+        elif attack_time < timer and timer < attack_time+hurt_time:
             if pos_move:
                 bat_surf = battle.draw_battle_round('player',choose,5,0)
             else :bat_surf = battle.draw_battle_round('player',choose,-5,0)
             pos_move = not pos_move
 
-        elif attack_time+hurt_time < period and period < attack_time*2+hurt_time:
+        elif timer is attack_time+hurt_time:
+            battle.decrease_move_num(choose)
+            battle.get_hurt('opponent',choose)
+            if battle.one_die() : 
+                sit_num = 8
+                timer = -50
+
+        elif attack_time+hurt_time < timer and timer < attack_time*2+hurt_time:
             bat_surf = battle.draw_battle_round('opponent',opp_attack,0,0)
 
-        elif attack_time*2+hurt_time < period and period < attack_time*2+hurt_time*2:
+        elif attack_time*2+hurt_time < timer and timer < attack_time*2+hurt_time*2:
             if pos_move:
                 bat_surf = battle.draw_battle_round('opponent',opp_attack,0,5)
             else :bat_surf = battle.draw_battle_round('opponent',opp_attack,0,-5)
             pos_move = not pos_move
 
-        elif attack_time*2+hurt_time*2 < period:
-            sit_num = 4
+        elif timer is 2*(attack_time+hurt_time):
+            choose = opp_attack
+            battle.get_hurt('player',choose)
+            if battle.one_die() : 
+                sit_num = 8
+                timer = -50
+
+        elif 2*(attack_time+hurt_time) < timer:
+            sit_num = 4    
+            choose_move = False
 
         BASE_SURF.blit(bat_surf, (0,0))
+        timer += 1
 
     elif current_situation() is 'battle':       
         bat_surf, choose = battle.draw_battle(move_to, choose_move)
@@ -207,6 +213,26 @@ while True:
 
     elif current_situation() is 'pokedex' :
         BASE_SURF.fill((125, 0,125))
+
+    elif current_situation() is 'other_situation' :
+        if choose_move:
+            bonus = 0
+            if battle.has_level_up: bonus = 50
+            if timer < 0:
+                bat_surf = battle.draw_battle_over(0, 0)
+            elif 0 < timer and timer < 200+bonus:
+                if battle.my_pokemon_die():
+                    bat_surf = battle.draw_battle_over(timer, 0)
+                else : 
+                    bat_surf = battle.draw_battle_over(0, timer)
+                    if timer is 149 or timer is 150:
+                        battle.set_cal_exp()
+
+
+            elif timer > 200+bonus: sit_num = 3
+
+        BASE_SURF.blit(bat_surf, (0,0))
+        timer += 1
 
     elif change_map(move_to):
         ALL_MAPS_DATA[current_map.map_num] = current_map
@@ -241,7 +267,7 @@ while True:
                     pygame.display.update()
                     time.sleep(0.1)
                     moniter = (moniter+1)%3
-                battle = Battle(pokedex.pokemon_list[0],Pokemon(random.randint(1,9),random.randint(1,10)))
+                battle = Battle(pokedex.pokemon_list[0],Pokemon(1,1))
                 sit_num = prior_sit_num = 4
 
     # TODO: if the puzzle is solved, display a message to indicate user

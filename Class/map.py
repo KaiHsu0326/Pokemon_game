@@ -49,7 +49,7 @@ class Map() :
         map_surf_w = self.map_midth * TILE_WIDTH
         map_surf_h = (self.map_height-1) * TILE_FLOOR_HEIGHT + TILE_HEIGHT
         map_surf = pygame.Surface((map_surf_w, map_surf_h))
-        map_surf.blit(pygame.transform.scale(SCENSE_IMGAES['sea'], (X_RANGE,Y_RANGE)),(0,0))   # start with a blank color on the surface.
+        map_surf.blit(pygame.transform.scale(SCENSE_IMAGES['sea'], (X_RANGE,Y_RANGE)),(0,0))   # start with a blank color on the surface.
 
         # Draw the tile sprites onto this surface.
         for r in range(len(self.map_data)):
@@ -64,11 +64,11 @@ class Map() :
 
                 for item in selectors:
                     if (r, c) == item.pos:
-                        map_surf.blit(SCENSE_IMGAES['selector'], space_rect)
+                        map_surf.blit(SCENSE_IMAGES['selector'], space_rect)
                         
                 # Last draw the player on the board.
                 if (r, c) == player.pos:
-                    map_surf.blit(SCENSE_IMGAES['boy'], space_rect)
+                    map_surf.blit(SCENSE_IMAGES['boy'], space_rect)
         if map_surf_w < X_RANGE and map_surf_h < Y_RANGE: return map_surf, True
         else : return map_surf, False
 
@@ -116,7 +116,7 @@ class Map() :
 dir_path = os.path.dirname(os.path.abspath(__file__))
 image_path = dir_path+'/../image/'
 
-SCENSE_IMGAES = {'selector': pygame.image.load(image_path+'Selector.png'),
+SCENSE_IMAGES = {'selector': pygame.image.load(image_path+'Selector.png'),
               'corner': pygame.image.load(image_path+'Wall_Block_Tall.png'),
               'wall': pygame.image.load(image_path+'Wood_Block_Tall.png'),
               'inside floor': pygame.image.load(image_path+'Plain_Block.png'),
@@ -125,11 +125,11 @@ SCENSE_IMGAES = {'selector': pygame.image.load(image_path+'Selector.png'),
               'rock': pygame.image.load(image_path+'Rock1.png'),
               'sea': pygame.image.load(image_path+'sea.png')}
 
-TILE_DEFINITION = {'x': SCENSE_IMGAES['corner'],
-               '#': SCENSE_IMGAES['wall'],
-               'o': SCENSE_IMGAES['inside floor'],
-               'M': SCENSE_IMGAES['grass'],
-               '1': SCENSE_IMGAES['rock'],
+TILE_DEFINITION = {'x': SCENSE_IMAGES['corner'],
+               '#': SCENSE_IMAGES['wall'],
+               'o': SCENSE_IMAGES['inside floor'],
+               'M': SCENSE_IMAGES['grass'],
+               '1': SCENSE_IMAGES['rock'],
                }
 
 game_map = [ [' ',' ',' ',' ',' ',' ',' '],

@@ -1,0 +1,83 @@
+{
+    "Bulbasaur": {
+      "type": "grass",
+      "hp": 45,
+      "attack": 49,
+      "defense":49,
+      "add_value": [2,3],
+      "evol_level": 16,
+      "evol": "Ivysaur"
+    },
+    "Ivysaur": {
+      "type": "grass",
+      "hp": 60,
+      "attack": 62,
+      "defense":63,
+      "add_value": [2,3],
+      "evol_level": 32,
+      "evol": "Venusaur"
+    },
+    "Venusaur": {
+      "type": "grass",
+      "hp": 80,
+      "attack": 82,
+      "defense":83,
+      "add_value": [1,2],
+      "evol_level": null,
+      "evol": null
+    },
+    "Charmander": {
+        "type": "fire",
+        "hp": 45,
+        "attack": 49,
+        "defense":49,
+        "add_value": [2,3],
+        "evol_level": 16,
+        "evol": "Charmeleon"
+      },
+      "Charmeleon": {
+        "type": "fire",
+        "hp": 60,
+        "attack": 62,
+        "defense":63,
+        "add_value": [2,3],
+        "evol_level": 32,
+        "evol": "Charizard"
+      },
+      "Charizard": {
+        "type": "fire",
+        "hp": 80,
+        "attack": 82,
+        "defense":83,
+        "add_value": [1,2],
+        "evol_level": null,
+        "evol": null
+      },
+      "Squirtle": {
+        "type": "water",
+        "hp": 45,
+        "attack": 49,
+        "defense":49,
+        "add_value": [2,3],
+        "evol_level": 16,
+        "evol": "Wartortle"
+      },
+      "Wartortle": {
+        "type": "water",
+        "hp": 60,
+        "attack": 62,
+        "defense":63,
+        "add_value": [2,3],
+        "evol_level": 32,
+        "evol": "Blastoise"
+      },
+      "Blastoise": {
+        "type": "water",
+        "hp": 80,
+        "attack": 82,
+        "defense":83,
+        "add_value": [1,2],
+        "evol_level": null,
+        "evol": null
+      }
+}
