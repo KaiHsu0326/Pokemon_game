@@ -4,19 +4,6 @@ from .map import X_RANGE, Y_RANGE
 POKEDEX = { 1:'Bulbasaur', 2:'Ivysaur', 3:'Venusaur', 4:'Charmander', 5:'Charmeleon',
             6:'Charizard', 7:'Squirtle', 8:'Wartortle', 9:'Blastoise'}
 
-POKE_STATS = {'unevol':[45,49,(2,3),16], 'fir_evol': [60,62,(2,3),32], 'sec_evol': [80,82,(1,2)]}
-
-UNEVOL = ['Bulbasaur','Charmander','Squirtle']
-FIR_EVOL = ['Ivysaur','Charmeleon','Wartortle']
-SEC_EVOL = ['Venusaur','Charizard','Blastoise']
-
-TYPE = {'Bulbasaur': 'grass', 'Ivysaur': 'grass', 'Venusaur': 'grass',
-        'Charmander': 'fire', 'Charmeleon': 'fire', 'Charizard': 'fire',
-        'Squirtle': 'water', 'Wartortle': 'water', 'Blastoise': 'water'}
-
-MOVE = {'grass':['attack1','attack2','attack3','attack4'],
-        'fire':['attack5','attack6','attack7','attack8'],
-        'water':['attack9','attack10','attack11','attack12']}
 
 LEVEL_TOP =[0,0]
 level = 2
@@ -30,6 +17,36 @@ while level < 40:
 
 LATENCY = 1
 dir_path = os.path.dirname(os.path.abspath(__file__))
+
+class Move():
+    def __init__(self, name, total_num)):
+        self.name = name
+        self.left_num = self.total_num = total_num
+
+    def use_move(self) :
+        self.left_num -= 1
+        return self.name
+
+class Stats():
+
+    POKE_STATS = {'unevol':[45,49,(2,3),16], 'fir_evol': [60,62,(2,3),32], 'sec_evol': [80,82,(1,2)]}
+
+    UNEVOL = ['Bulbasaur','Charmander','Squirtle']
+    FIR_EVOL = ['Ivysaur','Charmeleon','Wartortle']
+    SEC_EVOL = ['Venusaur','Charizard','Blastoise']
+
+    TYPE = {'Bulbasaur': 'grass', 'Ivysaur': 'grass', 'Venusaur': 'grass',
+            'Charmander': 'fire', 'Charmeleon': 'fire', 'Charizard': 'fire',
+            'Squirtle': 'water', 'Wartortle': 'water', 'Blastoise': 'water'}
+    
+    def __init__(self, name):
+        self.name = name
+        self.type = TYPE['name']
+
+    def get_stats(self):
+        if self.name in UNEVOL:
+            self.hp = POKE_STATS['unevol'][0]
+            self.attack = POKE_STATS['unevol'][1]
 
 class Pokemon():
     image_path = dir_path+'/../image/poke_image'
@@ -50,9 +67,20 @@ class Pokemon():
         if self.name in SEC_EVOL:self.stats = POKE_STATS['sec_evol']
         self.hp = self.stats[0]+(level-1)*random.randint(self.stats[2][0],self.stats[2][1])
         self.attack = self.stats[1]+(level-1)*random.randint(self.stats[2][0],self.stats[2][1])
-        self.move = MOVE[TYPE[self.name]]
+        self.move = type_move(TYPE[self.name])
         self.exp = LEVEL_TOP[level]
         
+    def type_move(self, pkm_type):
+        move = []
+        if pkm_type == 'grass':
+            move = [Move('attack1',30),('attack2',20),('attack3',10),('attack4',5)]
+        elif pkm_type == 'fire':
+            move = [Move('attack5',30),('attack6',20),('attack7',10),('attack8',5)]
+        elif pkm_type == 'water':
+            move = [Move('attack9',30),('attack10',20),('attack11',10),('attack12',5)]
+
+        return move
+
 
     def load_image(self) :
         pok_front = []
@@ -104,7 +132,8 @@ def display_arrow(move_to, offset):
 
 class Battle():
     bg_size = BATTLE_IMGAE['battle_bg'].get_rect().size
-    arrow_direction = [(520, 485),(665, 485),(520, 535),(665, 535)]
+    arrow_direction = [[(520, 485),(665, 485),(520, 535),(665, 535)],
+                       [(20, 485),(165, 485),(20, 535),(165, 535)]]
 
     def __init__(self, p1, p2) :
         self.my_pokemon = p1
@@ -153,7 +182,7 @@ class Battle():
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
         self.display_battle_text(bat_surf, choose_move)
         self.offset = display_arrow(move_to, self.offset)
-        bat_surf.blit(BATTLE_IMGAE['arrow_right'], self.arrow_direction[self.offset]) 
+        bat_surf.blit(BATTLE_IMGAE['arrow_right'], self.arrow_direction[choose_move][self.offset]) 
         return bat_surf, self.offset
 
     def draw_battle_round(self,turn,choose,opp_x,my_x):
@@ -163,8 +192,8 @@ class Battle():
         self.display_pokemon(bat_surf, (200+my_x,250, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325))
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(500,150)), (0,450)) # 第一塊方格 What should ... do
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
-        if turn is 'player':display_text(bat_surf, self.my_pokemon.name + ' uses ' + self.my_pokemon.move[choose] , (100,515), 20) 
-        elif turn is 'opponent':display_text(bat_surf, self.opp_pokemon.name + ' uses ' + self.opp_pokemon.move[choose] , (100,515), 20) 
+        if turn is 'player':display_text(bat_surf, self.my_pokemon.name + ' used ' + self.my_pokemon.move[choose] , (100,515), 20) 
+        elif turn is 'opponent':display_text(bat_surf, self.opp_pokemon.name + ' used ' + self.opp_pokemon.move[choose] , (100,515), 20) 
         return bat_surf
 
 class Pokedex():

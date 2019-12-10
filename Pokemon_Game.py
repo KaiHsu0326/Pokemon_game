@@ -156,6 +156,7 @@ while True:
                         sit_num = 7
                         time_start = time.time()
                         opp_attack = random.randint(0,3)
+                        choose_move = False
                     elif choose is 0 and not choose_move:choose_move = True
                     elif choose is 1:sit_num = 5
                     elif choose is 2:sit_num = 6
@@ -237,7 +238,7 @@ while True:
                     pygame.display.update()
                     time.sleep(0.1)
                     moniter = (moniter+1)%3
-                battle = Battle(pokedex.pokemon_list[0],Pokemon(9,30))
+                battle = Battle(pokedex.pokemon_list[0],Pokemon(random.randint(1,9),random.randint(1,10)))
                 sit_num = prior_sit_num = 4
 
     # TODO: if the puzzle is solved, display a message to indicate user
