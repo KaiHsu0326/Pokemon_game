@@ -111,7 +111,7 @@ class Battle():
                        [(40, 485),(235, 485),(40, 535),(235, 535)]]
 
     my_pkm_hurt = opp_pkm_hurt = 0
-    has_level_up = set_exp = False
+    pos_move = has_level_up = set_exp = False
     opp_move = exp_gained = 0
 
     def __init__(self, p1, p2) :
@@ -165,7 +165,7 @@ class Battle():
         if turn is 'player' :
             hurt = int(self.opp_pokemon.attack*(1+0.06*choose) - self.my_pokemon.defense)
             if hurt <= 0 : hurt = random.randint(2,5)
-            if self.my_pokemon.level - self.opp_pokemon.level >= 4: hurt += 15
+            if self.my_pokemon.level - self.opp_pokemon.level >= 4: hurt += 10
             if self.my_pokemon.remain_blood > hurt:
                self.my_pokemon.remain_blood -= hurt
             else : self.my_pokemon.remain_blood = 0
@@ -173,7 +173,8 @@ class Battle():
 
         elif turn is 'opponent':
             hurt = int(self.my_pokemon.attack*(1+0.06*choose) - self.opp_pokemon.defense)
-            if hurt <= 0 : hurt = random.randint(2,5)          
+            if hurt <= 0 : hurt = random.randint(2,5)   
+            if self.opp_pokemon.level - self.my_pokemon.level >= 4: hurt += 10      
             if self.opp_pokemon.remain_blood > hurt:
                self.opp_pokemon.remain_blood -= hurt
             else : self.opp_pokemon.remain_blood = 0
@@ -227,6 +228,49 @@ class Battle():
             display_text(bat_surf, self.opp_pokemon.name + ' used ' + self.opp_pokemon.move[choose].name , (100,515), 20) 
         return bat_surf
 
+    def battle_round_animate(self, timer, choose, opp_attack):
+        attack_time = 40
+        hurt_time = 10
+        bat_surf = pygame.Surface((X_RANGE, Y_RANGE))
+
+        if timer < attack_time:
+            bat_surf = self.draw_battle_round('player',choose,0,0)
+ 
+        elif attack_time <= timer and timer < attack_time+hurt_time:
+            if self.pos_move:
+                bat_surf = self.draw_battle_round('player',choose,5,0)
+            else :bat_surf = self.draw_battle_round('player',choose,-5,0)
+            self.pos_move = not self.pos_move
+
+        elif timer == attack_time+hurt_time:
+            self.decrease_move_num(choose)
+            self.get_hurt('opponent',choose)
+            bat_surf = self.draw_battle_round('player',choose,0,0)
+            if self.one_die() : 
+                return bat_surf, 8
+            
+        elif attack_time+hurt_time < timer and timer < attack_time*2+hurt_time:
+            bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
+
+        elif attack_time*2+hurt_time <= timer and timer < 2*(attack_time+hurt_time):
+            if self.pos_move:
+                bat_surf = self.draw_battle_round('opponent',opp_attack,0,5)
+            else :bat_surf = self.draw_battle_round('opponent',opp_attack,0,-5)
+            self.pos_move = not self.pos_move
+
+        elif timer == 2*(attack_time+hurt_time):
+            self.get_hurt('player',opp_attack)
+            bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
+            if self.one_die() : 
+                return bat_surf, 8
+            
+        elif 2*(attack_time+hurt_time) < timer:
+            bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
+            return bat_surf, 4
+
+        print(timer)
+        return bat_surf, 7
+
     def draw_battle_over(self, my_shift, opp_shift):
         bat_surf = pygame.Surface((X_RANGE, Y_RANGE))
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['battle_bg'], (int(self.bg_size[0]*0.63), int(self.bg_size[1]*0.63))), (0,0))
@@ -236,16 +280,26 @@ class Battle():
             self.display_pokemon(bat_surf, (200,250+my_shift*20, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325))
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(500,150)), (0,450)) # 第一塊方格 What should ... do
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
-        if my_shift is not 0 :
-            display_text(bat_surf, self.my_pokemon.name + ' dissolved!', (100,515), 20) 
-        elif my_shift > 200 or opp_shift > 200:
-            display_text(bat_surf, self.my_pokemon.name + ' grew to LV. ' + str(self.my_pokemon.level) + '!', (100,515), 20) 
-        elif 150 <= my_shift or 150 <= opp_shift:
-            display_text(bat_surf, self.my_pokemon.name + ' gained ' + str(self.exp_gained) + ' EXP. Points!', (100,515), 20) 
-        
-        else : 
-            display_text(bat_surf, self.opp_pokemon.name + ' dissolved!', (100,515), 20) 
+        self.display_dif_msg(bat_surf, my_shift, opp_shift)
         return bat_surf
+
+    def display_dif_msg(self, bat_surf, my_shift, opp_shift):
+        value = [my_shift, opp_shift]
+        lose_num = 1
+        if opp_shift is 0 : lose_num = 0
+
+        if lose_num is 1:
+            if 200 <= value[lose_num]:
+                display_text(bat_surf, self.my_pokemon.name + ' grew to LV. ' + str(self.my_pokemon.level) + '!', (100,515), 20) 
+            elif 150 <= value[lose_num] : 
+                display_text(bat_surf, self.my_pokemon.name + ' gained ' + str(self.exp_gained) + ' EXP. Points!', (100,515), 20) 
+            else :
+                display_text(bat_surf, 'Enemy ' + self.opp_pokemon.name + ' fainted!', (100,515), 20) 
+        else : 
+            if 140 <= value[lose_num] : 
+                display_text(bat_surf, 'All of your pokemons fainted', (100,515), 20) 
+            else :
+                display_text(bat_surf, 'Your Pokemon ' + self.my_pokemon.name + ' fainted!', (100,515), 20) 
 
     def have_left_move_num(self, choose):
         if self.my_pokemon.move[choose].left_num > 0: return True

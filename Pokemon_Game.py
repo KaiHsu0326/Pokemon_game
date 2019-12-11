@@ -100,7 +100,7 @@ def draw_choose_begin_pokemon(poke, move_to) :
         rect.midbottom = space_rect.bottomright  
     BASE_SURF.blit(arrow, rect)
 
-timer =  pokedex = 0
+opp_attack = timer =  pokedex = 0
 turn = ''
 prior_sit_num = sit_num = choose = 1
 choose_move = pos_move = False
@@ -135,8 +135,10 @@ while True:
             if e.key == pygame.K_t and current_situation() is 'walking':
                 bag.transaction()
 
-            if e.key == pygame.K_x and (current_situation() is 'bag' or current_situation() is 'pokedex') :
-                sit_num = prior_sit_num
+            if e.key == pygame.K_x :
+                if (current_situation() is 'bag' or current_situation() is 'pokedex') :
+                    sit_num = prior_sit_num
+                elif choose_move: choose_move = False
 
             if e.key == pygame.K_z :
                 if current_situation() is 'begin' :
@@ -164,47 +166,12 @@ while True:
         if not battle.have_left_move_num(choose):
             sit_num = 4
             continue
-
-        attack_time = 40
-        hurt_time = 10
-        if timer < attack_time:
-            bat_surf = battle.draw_battle_round('player',choose,0,0)
- 
-        elif attack_time < timer and timer < attack_time+hurt_time:
-            if pos_move:
-                bat_surf = battle.draw_battle_round('player',choose,5,0)
-            else :bat_surf = battle.draw_battle_round('player',choose,-5,0)
-            pos_move = not pos_move
-
-        elif timer is attack_time+hurt_time:
-            battle.decrease_move_num(choose)
-            battle.get_hurt('opponent',choose)
-            if battle.one_die() : 
-                sit_num = 8
-                timer = -50
-
-        elif attack_time+hurt_time < timer and timer < attack_time*2+hurt_time:
-            bat_surf = battle.draw_battle_round('opponent',opp_attack,0,0)
-
-        elif attack_time*2+hurt_time < timer and timer < attack_time*2+hurt_time*2:
-            if pos_move:
-                bat_surf = battle.draw_battle_round('opponent',opp_attack,0,5)
-            else :bat_surf = battle.draw_battle_round('opponent',opp_attack,0,-5)
-            pos_move = not pos_move
-
-        elif timer is 2*(attack_time+hurt_time):
-            choose = opp_attack
-            battle.get_hurt('player',choose)
-            if battle.one_die() : 
-                sit_num = 8
-                timer = -50
-
-        elif 2*(attack_time+hurt_time) < timer:
-            sit_num = 4    
-            choose_move = False
-
+       
+        bat_surf, sit_num = battle.battle_round_animate(timer, choose, opp_attack)
         BASE_SURF.blit(bat_surf, (0,0))
         timer += 1
+        if sit_num is 8: timer = -50
+        elif sit_num is 4: choose_move = False
 
     elif current_situation() is 'battle':       
         bat_surf, choose = battle.draw_battle(move_to, choose_move)
@@ -272,10 +239,5 @@ while True:
                     moniter = (moniter+1)%3
                 battle = Battle(pokedex.pokemon_list[0],Pokemon(1,1))
                 sit_num = prior_sit_num = 4
-
-    # TODO: if the puzzle is solved, display a message to indicate user
-    # if is_solved(selectors, stars) :
-    #     BASE_SURF.blit(IMAGES['solved'], (175,200))
-    #     switch_scene = True
 
     pygame.display.update()
