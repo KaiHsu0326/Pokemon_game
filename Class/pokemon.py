@@ -92,6 +92,12 @@ BATTLE_IMGAE = {'battle_bg' : pygame.image.load(dir_path+'/../image/battle_bg.pn
                 'my_hp' : pygame.image.load(dir_path+'/../image/my_hp.png'),
                 'arrow_right' : pygame.image.load(dir_path+'/../image/arrow_right.png'),}
 
+POKEDEX_IMGAE = {'pokedex_bg' : pygame.image.load(dir_path+'/../image/pokedex_bg.png'),
+                 'not_choose_poke' : pygame.image.load(dir_path+'/../image/not_choose_poke.png'),
+                 'first_poke' : pygame.image.load(dir_path+'/../image/first_poke.png'), 
+                 'choose_poke' : pygame.image.load(dir_path+'/../image/choose_poke.png'),
+                 'choose_cancel' : pygame.image.load(dir_path+'/../image/choose_cancel.png'),}
+
 def display_text(bat_surf, str, pos, font_size):
     fontObj = pygame.font.Font('freesansbold.ttf', font_size)
     textSurfaceObj = fontObj.render(str, True, (100,100,100))
@@ -268,7 +274,6 @@ class Battle():
             bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
             return bat_surf, 4
 
-        print(timer)
         return bat_surf, 7
 
     def draw_battle_over(self, my_shift, opp_shift):
@@ -323,9 +328,48 @@ class Battle():
 
 
 class Pokedex():
+    
     pokemon_list = []
     def __init__(self, p) :
+        self.current_pokemon = 0
         self.pokemon_list.append(p)
+        self.pokemon_list.append(p)
+        self.pokemon_list.append(p)
+
+
+    def draw_pokedex(self, move_to):
+        pokedex_surf = pygame.Surface((X_RANGE, Y_RANGE))
+        pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['pokedex_bg'], (X_RANGE, Y_RANGE)), (0,0))
+        display_text(pokedex_surf, 'CHOOSE A POKEMON', (100, 500), 32)
+        pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['first_poke'], (250, 200)), (50,50))
+        for i in range(5):
+            pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['not_choose_poke'], (400, 78)), (350,i*88))
+        
+        list_length = len(self.pokemon_list) - 1 # 因為第一隻不會選擇，所以要看的就是除了第一隻之外的
+        if move_to == 'UP' and self.current_pokemon > 0:
+            self.current_pokemon -= 1
+        elif move_to == 'DOWN' and self.current_pokemon < list_length:
+            self.current_pokemon += 1
+
+        if self.current_pokemon >= list_length:
+            pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['choose_cancel'], (200, 100)), (565,465)) # 選不到印cancel 
+        else:
+            pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['choose_poke'], (400, 78)), (345,self.current_pokemon*88))
+        
+        return pokedex_surf
+        
+    def draw_pokedex_pokemon(self, pokedex_surf):
+        if len(pokemon_list) is not 0 :
+            index = 0
+            for i in pokemon_list:         
+                bag_surf.blit(pygame.transform.scale(i.image,(50,50)), (350,35+index*60)) #  上方圖片
+                display_text(bag_surf, i.name, (425,50+index*60))    
+                display_text(bag_surf, 'X'+ str(i.num), (700,50+index*60)) # 幾個 ex. X5 
+                index += 1
+                
+            bag_surf.blit(pygame.transform.scale(interface.items[self.current_item].image,(50,50)),(35,500)) # 下方圖片
+            display_text(bag_surf, interface.items[self.current_item].description, (150, 500)) # 下方圖片說明
+            pygame.draw.rect(bag_surf, (255, 0, 0), ((290, 25+(self.current_item*63)), (485, 65)), 5)
 
     
 

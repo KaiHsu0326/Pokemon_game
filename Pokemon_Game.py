@@ -132,7 +132,7 @@ while True:
             if e.key == pygame.K_b and current_situation() is 'walking':
                 sit_num = 5
 
-            if e.key == pygame.K_t and current_situation() is 'walking':
+            if e.key == pygame.K_t and current_situation() is 'walking': # Transaction 
                 bag.transaction()
 
             if e.key == pygame.K_x :
@@ -182,7 +182,8 @@ while True:
         BASE_SURF.blit(bag_surf, (0,0))
 
     elif current_situation() is 'pokedex' :
-        BASE_SURF.fill((125, 0,125))
+        pokedex_surf = pokedex.draw_pokedex(move_to)
+        BASE_SURF.blit(pokedex_surf, (0,0))
 
     elif current_situation() is 'other_situation' :
         if choose_move:
