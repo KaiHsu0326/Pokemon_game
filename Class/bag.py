@@ -145,4 +145,8 @@ class Bag():
 
             self.interfaces[1].items.append(new_item)
 
+    def transaction(self) :     
+        new_item = Items('PokeBall', 1, 'Catching wild Pokémon props')
+        self.add_item(new_item)
+
             
