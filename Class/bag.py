@@ -5,9 +5,12 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 
 
 BAG_IMGAE = {'bag_bg' : pygame.image.load(dir_path+'/../image/bag_bg.png'),
-             'poke_balls' : pygame.image.load(dir_path+'/../image/poke_balls.png')}
+             'PokeBall' : pygame.image.load(dir_path+'/../image/poke_balls.png'),
+             'Potion' : pygame.image.load(dir_path+'/../image/potion.png')}
 
-BAGDEX = { 1:'PokeBalls'}
+BAGDEX = {'balls':['PokeBall'], 
+          'props':['Potion'] }
+
 
 def display_text(bat_surf, str, pos):
 
@@ -25,23 +28,25 @@ def display_text(bat_surf, str, pos):
 
 class Items():
 
-    def __init__(self, name, num, description, image) :
+    def __init__(self, name, num, description) :
         self.name = name
         self.num = num
         self.description = description
-        self.image = image
+        self.image = BAG_IMGAE[name]
+        self.type = self.get_type(name)
 
-#draw an unfilled square
-# pygame.draw.rect(background, (0, 255, 0), ((200, 5), (100, 100)), 3)
+    def get_type(self, name):
+        if name in BAGDEX['balls'] :return 'balls'
+        elif name in BAGDEX['props'] :return 'props'
 
 class Interface():
     def __init__(self, name, pos):
         self.name = name
         self.pos = pos
         if name == 'Poké balls':
-            self.items = [Items('PokeBalls', 5, 'Catching wild Pokémon props', BAG_IMGAE['poke_balls']),
-                        Items('PokeBalls', 5, 'Catching wild Pokémon props', BAG_IMGAE['poke_balls'])]
-        else :self.items = []
+            self.items = [Items('PokeBall', 5, 'Catching wild Pokémon props')]
+        else :
+            self.items = [Items('Potion', 5, 'Allows one Pokémon to recover 20HP')]
 
 
 class Bag():
@@ -103,3 +108,41 @@ class Bag():
             bag_surf.blit(pygame.transform.scale(interface.items[self.current_item].image,(50,50)),(35,500)) # 下方圖片
             display_text(bag_surf, interface.items[self.current_item].description, (150, 500)) # 下方圖片說明
             pygame.draw.rect(bag_surf, (255, 0, 0), ((290, 25+(self.current_item*63)), (485, 65)), 5)
+
+    def add_item(self, new_items): 
+        in_bag = False
+        bag = 0 
+        for i in range(len(self.interfaces[0].items)):
+            if new_items.type is 'props':
+                self.interfaces[0].items[i].num += 1
+                bag = 0
+                in_bag = True
+
+        for i in range(len(self.interfaces[1].items)):
+            if new_items.type is 'balls':
+                self.interfaces[1].items[i].num += 1
+                bag = 1
+                in_bag = True        
+
+        if not in_bag :
+            self.interfaces[bag].items.append(new_items)
+
+
+    def add_item(self, new_item): 
+        if new_item.type is 'props':
+            for item in self.interfaces[0].items:
+                if new_item.name is item.name:
+                    item.num += new_item.num
+                    return 
+
+            self.interfaces[0].items.append(new_item)
+
+        if new_item.type is 'balls':
+            for item in self.interfaces[1].items:
+                if new_item.name is item.name:
+                    item.num += new_item.num
+                    return 
+
+            self.interfaces[1].items.append(new_item)
+
+            

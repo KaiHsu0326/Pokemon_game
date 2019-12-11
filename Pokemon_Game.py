@@ -132,6 +132,10 @@ while True:
             if e.key == pygame.K_b and current_situation() is 'walking':
                 sit_num = 5
 
+            if e.key == pygame.K_t and current_situation() is 'walking':
+                new_items = Items('PokeBalls', 1, 'Catching wild Pokémon props')
+                bag.add_item(new_items)
+
             if e.key == pygame.K_x and (current_situation() is 'bag' or current_situation() is 'pokedex') :
                 sit_num = prior_sit_num
 
