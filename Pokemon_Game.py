@@ -100,10 +100,10 @@ def draw_choose_begin_pokemon(poke, move_to) :
         rect.midbottom = space_rect.bottomright  
     BASE_SURF.blit(arrow, rect)
 
+test_list = [Pokemon(1,5),Pokemon(7,5),Pokemon(4,5),Pokemon(2,5),Pokemon(3,5),Pokemon(5,5)]
 opp_attack = timer =  pokedex = 0
-turn = ''
 prior_sit_num = sit_num = choose = 1
-choose_move = pos_move = False
+choose_inside = pos_move = False
 BASE_SURF = pygame.display.set_mode((X_RANGE, Y_RANGE))
 fontObj = pygame.font.Font('freesansbold.ttf', 35)
 current_map = Map(1,-1)
@@ -138,7 +138,7 @@ while True:
             if e.key == pygame.K_x :
                 if (current_situation() is 'bag' or current_situation() is 'pokedex') :
                     sit_num = prior_sit_num
-                elif choose_move: choose_move = False
+                elif choose_inside: choose_inside = False
 
             if e.key == pygame.K_z :
                 if current_situation() is 'begin' :
@@ -147,15 +147,19 @@ while True:
                     pokedex = Pokedex(init_p[choose])
                     sit_num = prior_sit_num = 3
                 elif current_situation() is 'battle':
-                    if choose_move: 
+                    if choose_inside: 
                         sit_num = 7
                         timer = 0
                         opp_attack = random.randint(0,3)
                         
-                    elif choose is 0 and not choose_move:choose_move = True
+                    elif choose is 0 and not choose_inside:choose_inside = True
                     elif choose is 1:sit_num = 5
                     elif choose is 2:sit_num = 6
                     elif choose is 3:sit_num = 3
+
+                elif current_situation() is 'bag': 
+                    if not choose_inside: choose_inside = True
+                    else : choose_inside: choose_inside = False
     
     if current_situation() is 'begin' : draw_begin_cover()
  
@@ -171,14 +175,14 @@ while True:
         BASE_SURF.blit(bat_surf, (0,0))
         timer += 1
         if sit_num is 8: timer = -50
-        elif sit_num is 4: choose_move = False
+        elif sit_num is 4: choose_inside = False
 
     elif current_situation() is 'battle':       
-        bat_surf, choose = battle.draw_battle(move_to, choose_move)
+        bat_surf, choose = battle.draw_battle(move_to, choose_inside)
         BASE_SURF.blit(bat_surf, (0,0))
 
     elif current_situation() is 'bag': 
-        bag_surf = bag.draw_bag(move_to)
+        bag_surf = bag.draw_bag(move_to, choose_inside, test_list)
         BASE_SURF.blit(bag_surf, (0,0))
 
     elif current_situation() is 'pokedex' :
@@ -186,7 +190,7 @@ while True:
         BASE_SURF.blit(pokedex_surf, (0,0))
 
     elif current_situation() is 'other_situation' :
-        if choose_move:
+        if choose_inside:
             bonus = 0
             if battle.has_level_up: bonus = 50
             if timer < 0:
@@ -199,8 +203,9 @@ while True:
                     if timer is 149 or timer is 150:
                         battle.set_cal_exp()
 
-
-            elif timer > 200+bonus: sit_num = 3
+            elif timer > 200+bonus: 
+                sit_num = 3
+                choose_inside = False
 
         BASE_SURF.blit(bat_surf, (0,0))
         timer += 1
