@@ -74,16 +74,16 @@ class Bag():
             if interface.name == 'Poké balls': print('aaaa')
             elif interface.name == 'Items':
                 if move_to == 'UP' and interface.choose_inside > 0: interface.choose_inside -= 1
-                elif move_to == 'DOWN' and interface.choose_inside < len(interface.items) -1 : interface.choose_inside += 1
-                pygame.draw.rect(bag_surf, (255,213,132), (470,100,280,280))
+                elif move_to == 'DOWN' and interface.choose_inside < len(poke_list) -1 : interface.choose_inside += 1
+                pygame.draw.rect(bag_surf, (255,213,132), (470,100,280,200))
                 l = 0
                 for poke in poke_list:
                     display_inbox_text(bag_surf, poke.name, (520,120+l))
                     display_inbox_text(bag_surf, str(poke.remain_blood)+'/'+str(poke.hp), (680,120+l))
                     
                     l+=30
-                bag_surf.blit(BAG_IMGAE['arrow_right'], (490,117+20*interface.choose_inside)) 
-
+                bag_surf.blit(BAG_IMGAE['arrow_right'], (485,117+29*interface.choose_inside)) 
+               
         return bag_surf
 
     def draw_bag_items(self,bag_surf, interface):
@@ -116,7 +116,11 @@ class Bag():
 
             self.interfaces[1].items.append(new_item)
 
-    # def use_item
+    def use_props(self):
+        interface = self.interfaces[self.current_interface]
+        props = interface.items[self.current_item]
+        if interface.name == 'Poké balls': print('aaaa')
+        elif interface.name == 'Items':
 
     def transaction(self) :     
         new_item = Items('PokeBall', 1, 'Catching wild Pokémon props')

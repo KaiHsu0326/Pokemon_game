@@ -159,7 +159,7 @@ while True:
 
                 elif current_situation() is 'bag': 
                     if not choose_inside: choose_inside = True
-                    else : choose_inside: choose_inside = False
+                    else : choose_inside: bag.use_props()
     
     if current_situation() is 'begin' : draw_begin_cover()
  
