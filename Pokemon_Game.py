@@ -146,9 +146,9 @@ while True:
                 bag.transaction()
 
             if e.key == pygame.K_x :
-                if (get_situation() is 'bag' or get_situation() is 'pokedex' or get_situation() is 'computer') :
+                if inbox_choice: inbox_choice = False
+                elif (get_situation() is 'bag' or get_situation() is 'pokedex' or get_situation() is 'computer') :
                     change_situation(False, '')
-                elif inbox_choice: inbox_choice = False
 
             if e.key == pygame.K_z :
                 if get_situation() is 'begin' :
@@ -172,18 +172,30 @@ while True:
 
                 elif get_situation() is 'bag': 
                     if not inbox_choice: inbox_choice = True
-                    else : inbox_choice = bag.use_props()
+                    else : 
+                        if bag.use_props() :
+                            print('throw the ball')
+                            change_situation(False, '')
+                        inbox_choice = False
 
                 elif get_situation() is 'pokedex':
                     if inbox_choice:
+                        inbox_choice = False
                         if pokedex.swap_pokemon():
                             battle.set_my_pokemon(pokedex.pokemon_list[0])
-                        inbox_choice = False
+                            change_situation(False, '')
                     else :
                         if pokedex.select_pokedex():
                             inbox_choice = True
                         else :
                             change_situation(False, '')
+
+                elif get_situation() is 'computer':
+                    if inbox_choice: 
+                        pokedex.swap_com_poke()
+                        inbox_choice = False
+                    else : 
+                        inbox_choice = True
 
     if get_situation() is 'begin' : draw_begin_cover()
  
@@ -222,7 +234,7 @@ while True:
         BASE_SURF.blit(pokedex_surf, (0,0))
 
     elif get_situation() is 'computer':
-        computer_surf = pokedex.draw_computer(move_to)
+        computer_surf = pokedex.draw_computer(move_to, inbox_choice)
         BASE_SURF.blit(computer_surf, (0,0))
 
     elif get_situation() is 'other_situation' :

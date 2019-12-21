@@ -344,6 +344,7 @@ class Pokedex():
     pokemon_list = []
     POKEDEX_MAX = 6
     change = False
+    com_point = 0
     def __init__(self, p) :
         self.current_pokemon = 0
         self.current_compokemon = 0
@@ -351,12 +352,12 @@ class Pokedex():
         
         self.pokemon_list.append(Pokemon(2,5))
         self.pokemon_list.append(Pokemon(3,5))
-        # self.pokemon_list.append(Pokemon(4,5))
-        # self.pokemon_list.append(Pokemon(5,5))
-        # self.pokemon_list.append(Pokemon(6,5))
-        # self.pokemon_list.append(Pokemon(7,5))
-        # self.pokemon_list.append(Pokemon(8,5))
-        # self.pokemon_list.append(Pokemon(9,5))
+        self.pokemon_list.append(Pokemon(4,5))
+        self.pokemon_list.append(Pokemon(5,5))
+        self.pokemon_list.append(Pokemon(6,5))
+        self.pokemon_list.append(Pokemon(7,5))
+        self.pokemon_list.append(Pokemon(8,5))
+        self.pokemon_list.append(Pokemon(9,5))
 
 
 
@@ -427,6 +428,7 @@ class Pokedex():
 
     def swap_pokemon(self):
         if self.change:
+            self.change = False
             self.pokemon_list[0], self.pokemon_list[self.current_pokemon+1] = self.pokemon_list[self.current_pokemon+1], self.pokemon_list[0]
             return True
         else: return False
@@ -449,11 +451,10 @@ class Pokedex():
             display_text(bag_surf, interface.items[self.current_item].description, (150, 500)) 
             pygame.draw.rect(bag_surf, (255, 0, 0), ((290, 25+(self.current_item*63)), (485, 65)), 5)
 
-    def draw_computer(self, move_to):
+    def draw_computer(self, move_to, inbox_choice):
         computer_surf = pygame.Surface((X_RANGE, Y_RANGE))
         computer_surf.blit(pygame.transform.scale(COMPUTER_IMGAE['computer_bg'], (X_RANGE, Y_RANGE)), (0,0))
         j =  k = 0 
-        print(len(self.pokemon_list))
         for i in range(6,len(self.pokemon_list)):
             if i % 5 == 1 and i > 6 :
                 k += 1
@@ -462,14 +463,32 @@ class Pokedex():
             j += 1
 
         list_length = len(self.pokemon_list) - 7 # 還要扣掉自身可以帶的6隻
-        if move_to == 'LEFT' and self.current_compokemon > 0:
-            self.current_compokemon -= 1
-        elif move_to == 'RIGHT' and self.current_compokemon < list_length:
-            self.current_compokemon += 1 
-        elif move_to == 'UP' and self.current_compokemon-5 >= 0:
-            self.current_compokemon -= 5 
-        elif move_to == 'DOWN' and self.current_compokemon+5 <= list_length:
-            self.current_compokemon += 5 
+
+        if inbox_choice:
+            if len(self.pokemon_list) > 6: inbox_list = 6
+            else :inbox_list = len(self.pokemon_list)
+
+            if move_to == 'UP' and self.com_point > 0:
+                self.com_point -= 1
+            elif move_to == 'DOWN' and self.com_point < inbox_list-1:
+                self.com_point += 1
+            pygame.draw.rect(computer_surf, (255,213,132), (470,100,280,200))
+            l = 0
+            for poke in self.pokemon_list[:6]:
+                display_text(computer_surf, poke.name, (520,120+l), 20)
+                display_text(computer_surf, str(poke.remain_blood)+'/'+str(poke.hp), (680,120+l), 20)
+                
+                l+=30
+            computer_surf.blit(BATTLE_IMGAE['arrow_right'], (485,117+29*self.com_point)) 
+        else :
+            if move_to == 'LEFT' and self.current_compokemon > 0:
+                self.current_compokemon -= 1
+            elif move_to == 'RIGHT' and self.current_compokemon < list_length:
+                self.current_compokemon += 1 
+            elif move_to == 'UP' and self.current_compokemon-5 >= 0:
+                self.current_compokemon -= 5 
+            elif move_to == 'DOWN' and self.current_compokemon+5 <= list_length:
+                self.current_compokemon += 5 
        
         x = self.current_compokemon % 5
         y = self.current_compokemon // 5
@@ -488,3 +507,10 @@ class Pokedex():
             num = num//len(self.pokemon_list)
 
         return num-2
+
+    def swap_com_poke(self):
+        self.pokemon_list[self.current_compokemon+6], self.pokemon_list[self.com_point] = \
+            self.pokemon_list[self.com_point], self.pokemon_list[self.current_compokemon+6]
+
+        self.com_point = 0
+        # self.current_compokemon = 0
