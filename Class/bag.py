@@ -79,7 +79,7 @@ class Bag():
                 elif move_to == 'DOWN' and interface.choose_inside < len(poke_list) -1 : interface.choose_inside += 1
                 pygame.draw.rect(bag_surf, (255,213,132), (470,100,280,200))
                 l = 0
-                for poke in poke_list:
+                for poke in poke_list[:6]:
                     display_inbox_text(bag_surf, poke.name, (520,120+l))
                     display_inbox_text(bag_surf, str(poke.remain_blood)+'/'+str(poke.hp), (680,120+l))
                     
@@ -124,6 +124,7 @@ class Bag():
         if interface.name == 'Poké balls': print('aaaa')
         elif interface.name == 'Items':
             if props.name is 'Potion': 
+                props.num -= 1
                 self.p_list[interface.choose_inside].remain_blood += 20
                 if self.p_list[interface.choose_inside].remain_blood > \
                    self.p_list[interface.choose_inside].hp:

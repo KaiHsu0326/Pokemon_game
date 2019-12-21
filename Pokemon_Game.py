@@ -51,11 +51,6 @@ def draw_begin_cover() :
     textRectObj.center = (X_RANGE//2, 550)
     BASE_SURF.blit(textSurfaceObj, textRectObj)
 
-# def current_situation():
-#     global sit_num
-#     situation = {1:'begin', 2:'choose_poke', 3:'walking', 4:'battle', 5:'bag', 6:'pokedex', 7:'battle_round', 8:'other_situation'}
-#     return situation[sit_num]
-
 def get_situation():
     global situation
     return situation[-1]
@@ -104,12 +99,18 @@ def draw_choose_begin_pokemon(poke, move_to) :
         rect.midbottom = space_rect.bottomright  
     BASE_SURF.blit(arrow, rect)
 
-test_list = [Pokemon(1,5),Pokemon(7,5),Pokemon(4,5),Pokemon(2,5),Pokemon(3,5),Pokemon(5,5)]
-opp_attack = timer =  pokedex = 0
-# prior_sit_num = sit_num = choose = 1
-choose = 1
+def change_situation(add, situ):
+    global inbox_choice, timer
+    if add:
+        situation.append(situ)
+    else :situation.pop()
+
+    inbox_choice = False      
+    timer = 1  
+
+choose = timer = pokedex = 1
 situation = ['begin']
-inbox_choice = pos_move = False
+inbox_choice = False
 BASE_SURF = pygame.display.set_mode((X_RANGE, Y_RANGE))
 fontObj = pygame.font.Font('freesansbold.ttf', 35)
 current_map = Map(1,-1)
@@ -136,71 +137,74 @@ while True:
                 if get_situation() is not 'begin': move_to = 'DOWN'
 
             if e.key == pygame.K_b and get_situation() is 'walking':
-                situation.append('bag')
+                change_situation(True, 'bag')
+
+            if e.key == pygame.K_c and get_situation() is 'walking': 
+                change_situation(True, 'computer')
 
             if e.key == pygame.K_t and get_situation() is 'walking': # Transaction 
                 bag.transaction()
 
             if e.key == pygame.K_x :
-                if (get_situation() is 'bag' or get_situation() is 'pokedex') :
-                    # sit_num = prior_sit_num
-                    situation.pop()
+                if (get_situation() is 'bag' or get_situation() is 'pokedex' or get_situation() is 'computer') :
+                    change_situation(False, '')
                 elif inbox_choice: inbox_choice = False
 
             if e.key == pygame.K_z :
                 if get_situation() is 'begin' :
-                    # sit_num = 2
-                    situation.append('choose_poke')
+                    change_situation(True, 'choose_poke')
+
                 elif get_situation() is 'choose_poke' :
                     pokedex = Pokedex(init_p[choose])
-                    # sit_num = prior_sit_num = 3
-                    situation.append('walking')
+                    change_situation(True, 'walking')
+
                 elif get_situation() is 'battle':
                     if inbox_choice: 
-                        # sit_num = 7
-                        situation.append('battle_round')
-                        timer = 0
-                        opp_attack = random.randint(0,3)
-                        
-                    elif choose is 0 and not inbox_choice:inbox_choice = True
+                        change_situation(True, 'battle_round')                      
+                    elif choose is 0 and not inbox_choice:
+                        inbox_choice = True
                     elif choose is 1:
-                        # sit_num = 5
-                        situation.append('bag')
+                        change_situation(True, 'bag')
                     elif choose is 2:
-                        # sit_num = 6
-                        situation.append('pokedex')
+                        change_situation(True, 'pokedex')
                     elif choose is 3:
-                        # sit_num = 3
-                        situation.append('walking')
+                        change_situation(True, 'walking')
 
                 elif get_situation() is 'bag': 
                     if not inbox_choice: inbox_choice = True
                     else : inbox_choice = bag.use_props()
-    
+
+                elif get_situation() is 'pokedex':
+                    if inbox_choice:
+                        if pokedex.swap_pokemon():
+                            battle.set_my_pokemon(pokedex.pokemon_list[0])
+                        inbox_choice = False
+                    else :
+                        if pokedex.select_pokedex():
+                            inbox_choice = True
+                        else :
+                            change_situation(False, '')
+
     if get_situation() is 'begin' : draw_begin_cover()
  
     elif get_situation() is 'choose_poke' :
         draw_choose_begin_pokemon(init_p, move_to)
 
     elif get_situation() is 'battle_round' :
-        if not battle.have_left_move_num(choose):
-            # sit_num = 4
-            situation.pop()
+        if not battle.have_left_move_num(choose) and timer is 1:
+            change_situation(False, '')
+            inbox_choice = True
             continue
        
-        # bat_surf, sit_num = battle.battle_round_animate(timer, choose, opp_attack)
-        bat_surf, finished = battle.battle_round_animate(timer, choose, opp_attack)
+        bat_surf, finished = battle.battle_round_animate(timer, choose)
         BASE_SURF.blit(bat_surf, (0,0))
         timer += 1
 
-        # if sit_num is 8: timer = -50
-        # elif sit_num is 4: inbox_choice = False
         if finished : 
-            situation.pop()
+            change_situation(False, '')
             if battle.one_die():
                 timer = -50
-                situation.pop()
-                situation.append('other_situation')
+                change_situation(True, 'other_situation')
             else :
                 inbox_choice = False
 
@@ -210,15 +214,19 @@ while True:
         BASE_SURF.blit(bat_surf, (0,0))
 
     elif get_situation() is 'bag': 
-        bag_surf = bag.draw_bag(move_to, inbox_choice, test_list)
+        bag_surf = bag.draw_bag(move_to, inbox_choice, pokedex.pokemon_list)
         BASE_SURF.blit(bag_surf, (0,0))
 
     elif get_situation() is 'pokedex' :
-        pokedex_surf = pokedex.draw_pokedex(move_to)
+        pokedex_surf = pokedex.draw_pokedex(move_to, inbox_choice)
         BASE_SURF.blit(pokedex_surf, (0,0))
 
+    elif get_situation() is 'computer':
+        computer_surf = pokedex.draw_computer(move_to)
+        BASE_SURF.blit(computer_surf, (0,0))
+
     elif get_situation() is 'other_situation' :
-        if inbox_choice:
+        if situation[-2] is 'battle':
             bonus = 0
             if battle.has_level_up: bonus = 50
             if timer < 0:
@@ -228,12 +236,12 @@ while True:
                     bat_surf = battle.draw_battle_over(timer, 0)
                 else : 
                     bat_surf = battle.draw_battle_over(0, timer)
-                    if timer is 149 or timer is 150:
-                        battle.set_cal_exp()
+                    if timer is 150:
+                        battle.set_exp()
 
             elif timer > 200+bonus: 
-                # sit_num = 3
-                situation.pop()
+                change_situation(False, '') # pop to battle situation
+                change_situation(False, '') # pop to walking situation
                 inbox_choice = False
 
         BASE_SURF.blit(bat_surf, (0,0))
@@ -272,8 +280,7 @@ while True:
                     pygame.display.update()
                     time.sleep(0.1)
                     moniter = (moniter+1)%3
-                battle = Battle(pokedex.pokemon_list[0],Pokemon(1,1))
-                # sit_num = prior_sit_num = 4
-                situation.append('battle')
+                battle = Battle(pokedex.pokemon_list[0],Pokemon(1,pokedex.get_poke_level()))
+                change_situation(True, 'battle')
 
     pygame.display.update()

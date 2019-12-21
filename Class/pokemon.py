@@ -31,6 +31,7 @@ class Move():
 
 class Pokemon():
     image_path = dir_path+'/../image/poke_image'
+    sketch_path = dir_path + '/../image/sketch_image/'
     image_front = []
     image_back = []
     frame_num = 0
@@ -38,6 +39,7 @@ class Pokemon():
     def __init__(self,num, level):
         self.name = POKEDEX[num]
         self.image_front, self.image_back = self.load_image()
+        self.sketch = pygame.image.load(self.sketch_path +'/'+ self.name + '_sketch.png')
         self.f_size = self.image_front[0].get_rect().size
         self.b_size = self.image_back[0].get_rect().size
         self.level = level
@@ -86,6 +88,19 @@ class Pokemon():
         self.frame_num += 1
         return self.frame_num
 
+    def cal_blood_lose_prcnt(self, width):       
+        return int(width*self.remain_blood/self.hp)
+
+    def cal_exp_prcnt(self, width):
+        while self.exp >= LEVEL_TOP[self.level] :
+            self.exp -= LEVEL_TOP[self.level] 
+            self.level += 1
+            self.has_level_up = True
+
+        return int(width*self.exp/LEVEL_TOP[self.level])
+
+        
+
 BATTLE_IMGAE = {'battle_bg' : pygame.image.load(dir_path+'/../image/battle_bg.png'),
                 'text' : pygame.image.load(dir_path+'/../image/battle_text.png'),
                 'opp_hp' : pygame.image.load(dir_path+'/../image/opp_hp.png'),
@@ -97,6 +112,9 @@ POKEDEX_IMGAE = {'pokedex_bg' : pygame.image.load(dir_path+'/../image/pokedex_bg
                  'first_poke' : pygame.image.load(dir_path+'/../image/first_poke.png'), 
                  'choose_poke' : pygame.image.load(dir_path+'/../image/choose_poke.png'),
                  'choose_cancel' : pygame.image.load(dir_path+'/../image/choose_cancel.png'),}
+
+COMPUTER_IMGAE = {'computer_bg' : pygame.image.load(dir_path+'/../image/computer_bg.png'),
+                  'pointer' : pygame.image.load(dir_path+'/../image/pointer.png'), }
 
 def display_text(bat_surf, str, pos, font_size):
     fontObj = pygame.font.Font('freesansbold.ttf', font_size)
@@ -116,17 +134,17 @@ class Battle():
     arrow_direction = [[(520, 485),(665, 485),(520, 535),(665, 535)],
                        [(40, 485),(235, 485),(40, 535),(235, 535)]]
 
-    my_pkm_hurt = opp_pkm_hurt = 0
     pos_move = has_level_up = set_exp = False
-    opp_move = exp_gained = 0
+    opp_attack = exp_gained = 0
 
     def __init__(self, p1, p2) :
-        self.my_pokemon = p1
-        self.my_pkm_image = p1.image_back
+        # self.my_pokemon = p1
+        # self.my_pkm_image = p1.image_back
         self.opp_pokemon = p2
         self.opp_pkm_image = p2.image_front
         self.offset = 0
-        self.display_move ={ True: p1.move, False: ['FIGHT','BAG','POKEMON','RUN'] } 
+        # self.display_move ={ True: p1.move, False: ['FIGHT','BAG','POKEMON','RUN'] } 
+        self.set_my_pokemon(p1)
 
     def display_battle_text(self, bat_surf):
         display_text(bat_surf, 'What should '+ self.my_pokemon.name + ' do?' , (100,515), 20) 
@@ -145,33 +163,15 @@ class Battle():
         display_text(bat_surf, self.my_pokemon.move[offset].type, (680,490), 20)
         display_text(bat_surf, self.my_pokemon.move[offset].desc, (520,540), 20)
 
-    def cal_blood_lose_prcnt(self, face, width):
-        if face is 'back': 
-            return int(width*self.my_pokemon.remain_blood/self.my_pokemon.hp)
-
-        elif face is 'front': 
-            return int(width*self.opp_pokemon.remain_blood/self.opp_pokemon.hp)
-
-    def cal_exp_prcnt(self, gain_exp, width):
-        self.my_pokemon.exp += gain_exp
-        while self.my_pokemon.exp >= LEVEL_TOP[self.my_pokemon.level] :
-            self.my_pokemon.exp -= LEVEL_TOP[self.my_pokemon.level] 
-            self.my_pokemon.level += 1
-            self.has_level_up = True
-
-        return int(width*self.my_pokemon.exp/LEVEL_TOP[self.my_pokemon.level])
-
-    def cal_gain_exp(self):
-        if not self.set_exp :return 0
-        else :
-            self.exp_gained = (self.opp_pokemon.hp + self.opp_pokemon.attack + self.opp_pokemon.defense)//3
-            return self.exp_gained
+    def set_exp(self):
+        self.exp_gained = (self.opp_pokemon.hp + self.opp_pokemon.attack + self.opp_pokemon.defense)//3
+        self.my_pokemon.exp += self.exp_gained
 
     def get_hurt(self, turn, choose) :
         if turn is 'player' :
             hurt = int(self.opp_pokemon.attack*(1+0.06*choose) - self.my_pokemon.defense)
             if hurt <= 0 : hurt = random.randint(2,5)
-            if self.my_pokemon.level - self.opp_pokemon.level >= 4: hurt += 10
+            hurt += 10
             if self.my_pokemon.remain_blood > hurt:
                self.my_pokemon.remain_blood -= hurt
             else : self.my_pokemon.remain_blood = 0
@@ -180,7 +180,7 @@ class Battle():
         elif turn is 'opponent':
             hurt = int(self.my_pokemon.attack*(1+0.06*choose) - self.opp_pokemon.defense)
             if hurt <= 0 : hurt = random.randint(2,5)   
-            if self.opp_pokemon.level - self.my_pokemon.level >= 4: hurt += 10      
+            hurt += 10      
             if self.opp_pokemon.remain_blood > hurt:
                self.opp_pokemon.remain_blood -= hurt
             else : self.opp_pokemon.remain_blood = 0
@@ -195,12 +195,12 @@ class Battle():
         bat_surf.blit(pkm, rect)
         if face is 'back': 
             pygame.draw.rect(bat_surf,(73,83,87),(579,360,188,20))
-            pygame.draw.rect(bat_surf,(120,243,172),(579,360,self.cal_blood_lose_prcnt(face, 188),20)) # green
+            pygame.draw.rect(bat_surf,(120,243,172),(579,360,self.my_pokemon.cal_blood_lose_prcnt(188),20)) # green
             pygame.draw.rect(bat_surf,(73,83,87),(520,410,247,10))
-            pygame.draw.rect(bat_surf,(225,207,64),(520,410,self.cal_exp_prcnt(self.cal_gain_exp(), 247),10))  # yellow
+            pygame.draw.rect(bat_surf,(225,207,64),(520,410,self.my_pokemon.cal_exp_prcnt(247),10))  # yellow
         elif face is 'front': 
             pygame.draw.rect(bat_surf,(73,83,87),(212,72,186,20))
-            pygame.draw.rect(bat_surf,(120,243,172),(212,72,self.cal_blood_lose_prcnt(face, 186),20))  # green
+            pygame.draw.rect(bat_surf,(120,243,172),(212,72,self.opp_pokemon.cal_blood_lose_prcnt(186),20))  # green
         
         hp_surf = pygame.Surface((400, 100), pygame.SRCALPHA)
         hp_surf.blit(pygame.transform.scale(BATTLE_IMGAE[hp_image_name],(400,100)), (0,0))
@@ -234,7 +234,7 @@ class Battle():
             display_text(bat_surf, self.opp_pokemon.name + ' used ' + self.opp_pokemon.move[choose].name , (100,515), 20) 
         return bat_surf
 
-    def battle_round_animate(self, timer, choose, opp_attack):
+    def battle_round_animate(self, timer, choose):
         attack_time = 40
         hurt_time = 10
         bat_surf = pygame.Surface((X_RANGE, Y_RANGE))
@@ -252,26 +252,34 @@ class Battle():
             self.decrease_move_num(choose)
             self.get_hurt('opponent',choose)
             bat_surf = self.draw_battle_round('player',choose,0,0)
+
+            can_use = []
+            for i in range(4):
+                if self.opp_pokemon.move[i].left_num != 0:
+                    can_use.append(i)
+
+            self.opp_attack = can_use[random.randint(0,len(can_use)-1)]
+
             if self.one_die() : 
                 return bat_surf, True
             
         elif attack_time+hurt_time < timer and timer < attack_time*2+hurt_time:
-            bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
+            bat_surf = self.draw_battle_round('opponent',self.opp_attack,0,0)
 
         elif attack_time*2+hurt_time <= timer and timer < 2*(attack_time+hurt_time):
             if self.pos_move:
-                bat_surf = self.draw_battle_round('opponent',opp_attack,0,5)
-            else :bat_surf = self.draw_battle_round('opponent',opp_attack,0,-5)
+                bat_surf = self.draw_battle_round('opponent',self.opp_attack,0,5)
+            else :bat_surf = self.draw_battle_round('opponent',self.opp_attack,0,-5)
             self.pos_move = not self.pos_move
 
         elif timer == 2*(attack_time+hurt_time):
-            self.get_hurt('player',opp_attack)
-            bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
+            self.get_hurt('player',self.opp_attack)
+            bat_surf = self.draw_battle_round('opponent',self.opp_attack,0,0)
             if self.one_die() : 
                 return bat_surf, True
             
         elif 2*(attack_time+hurt_time) < timer:
-            bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
+            bat_surf = self.draw_battle_round('opponent',self.opp_attack,0,0)
             return bat_surf, True
 
         return bat_surf, False
@@ -313,6 +321,7 @@ class Battle():
 
     def decrease_move_num(self, choose):
         self.my_pokemon.move[choose].use_move()
+        print(self.my_pokemon.move[choose].left_num)
         self.offset = 0
 
     def one_die(self):
@@ -324,53 +333,158 @@ class Battle():
         if self.my_pokemon.remain_blood is 0: return True
         else : return False
 
-    def set_cal_exp(self):
-        self.set_exp = not self.set_exp
+    def set_my_pokemon(self, p1):
+        self.my_pokemon = p1
+        self.my_pkm_image = p1.image_back
+        self.display_move ={ True: p1.move, False: ['FIGHT','BAG','POKEMON','RUN'] } 
 
 
 class Pokedex():
     
     pokemon_list = []
+    POKEDEX_MAX = 6
+    change = False
     def __init__(self, p) :
         self.current_pokemon = 0
+        self.current_compokemon = 0
         self.pokemon_list.append(p)
-        self.pokemon_list.append(p)
-        self.pokemon_list.append(p)
+        
+        self.pokemon_list.append(Pokemon(2,5))
+        self.pokemon_list.append(Pokemon(3,5))
+        # self.pokemon_list.append(Pokemon(4,5))
+        # self.pokemon_list.append(Pokemon(5,5))
+        # self.pokemon_list.append(Pokemon(6,5))
+        # self.pokemon_list.append(Pokemon(7,5))
+        # self.pokemon_list.append(Pokemon(8,5))
+        # self.pokemon_list.append(Pokemon(9,5))
 
 
-    def draw_pokedex(self, move_to):
+
+    def draw_pokedex(self, move_to, inbox_choice):
         pokedex_surf = pygame.Surface((X_RANGE, Y_RANGE))
         pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['pokedex_bg'], (X_RANGE, Y_RANGE)), (0,0))
         display_text(pokedex_surf, 'CHOOSE A POKEMON', (100, 500), 32)
+
+        # --------------第一隻(最左邊)----獨立顯示-----------------------
         pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['first_poke'], (250, 200)), (50,50))
-        for i in range(5):
+        pokedex_surf.blit(pygame.transform.scale(self.pokemon_list[0].sketch, (75, 75)), (75,100))
+        display_text(pokedex_surf, self.pokemon_list[0].name, (150, 125), 25)
+        display_text(pokedex_surf, str(self.pokemon_list[0].level), (190, 155), 25)
+        pygame.draw.rect(pokedex_surf,(73,83,87),(142,190,132,8))
+        pygame.draw.rect(pokedex_surf,(120,243,172),(142,190,self.pokemon_list[0].cal_blood_lose_prcnt(132),8)) # green 血量圖示
+
+        display_text(pokedex_surf, str(self.pokemon_list[0].hp), (240, 210), 25) # 血量文字
+        display_text(pokedex_surf, str(self.pokemon_list[0].remain_blood), (190,210), 25) # 血量文字
+        # -------------------------------------------------------------
+
+        for i in range(self.POKEDEX_MAX-1):
             pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['not_choose_poke'], (400, 78)), (350,i*88))
-        
-        list_length = len(self.pokemon_list) - 1 # 因為第一隻不會選擇，所以要看的就是除了第一隻之外的
+
+        list_length = 5
+        if len(self.pokemon_list) < 6 :
+           list_length = len(self.pokemon_list)-1 # 因為第一隻不會選擇，所以要看的就是除了第一隻之外的剩下
+           
+        for i in range(list_length):
+            pygame.draw.rect(pokedex_surf,(73,83,87),(604,29+i*88,123,8))
+            pygame.draw.rect(pokedex_surf,(120,243,172),(604,29+i*88,self.pokemon_list[i+1].cal_blood_lose_prcnt(123),8)) # green 血量圖示
+            display_text(pokedex_surf, str(self.pokemon_list[i+1].hp), (700, 50+i*88), 25) # 血量文字
+            display_text(pokedex_surf, str(self.pokemon_list[i+1].remain_blood), (640,50+i*88), 25) # 血量文字
+
+            pokedex_surf.blit(pygame.transform.scale(self.pokemon_list[i+1].sketch, (60, 60)), (354,15+i*88))
+            display_text(pokedex_surf, self.pokemon_list[i+1].name, (425, 20+i*88), 20)
+            display_text(pokedex_surf, str(self.pokemon_list[i+1].level), (480, 50+i*88), 20)
+    
         if move_to == 'UP' and self.current_pokemon > 0:
             self.current_pokemon -= 1
         elif move_to == 'DOWN' and self.current_pokemon < list_length:
             self.current_pokemon += 1
+        elif move_to == 'RIGHT' and inbox_choice:
+            self.change = False
+        elif move_to == 'LEFT' and inbox_choice:
+            self.change = True
 
         if self.current_pokemon >= list_length:
             pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['choose_cancel'], (200, 100)), (565,465)) # 選不到印cancel 
         else:
             pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['choose_poke'], (400, 78)), (345,self.current_pokemon*88))
+            pokedex_surf.blit(pygame.transform.scale(self.pokemon_list[self.current_pokemon+1].sketch, (60, 60)), (354,15+self.current_pokemon*88))
+            display_text(pokedex_surf, self.pokemon_list[self.current_pokemon+1].name, (425, 20+self.current_pokemon*88), 20)
+            display_text(pokedex_surf, str(self.pokemon_list[self.current_pokemon+1].level), (480, 50+self.current_pokemon*88), 20)
+            display_text(pokedex_surf, str(self.pokemon_list[self.current_pokemon+1].hp), (700, 50+self.current_pokemon*88), 25) # 血量文字
+            display_text(pokedex_surf, str(self.pokemon_list[self.current_pokemon+1].remain_blood), (640,50+self.current_pokemon*88), 25) # 血量文字    
+
+        if inbox_choice:
+            pygame.draw.rect(pokedex_surf,(255,213,132),(200,200,400,200))
+            display_text(pokedex_surf, 'Want to change this pokemon?', (250, 250), 20)
+            display_text(pokedex_surf, '[Yes]', (300, 300), 25)
+            display_text(pokedex_surf, '[No]', (450, 300), 25)
+            if self.change :
+                pokedex_surf.blit(BATTLE_IMGAE['arrow_right'], (270, 300))
+            else : 
+                pokedex_surf.blit(BATTLE_IMGAE['arrow_right'], (420, 300))
         
         return pokedex_surf
+
+    def swap_pokemon(self):
+        if self.change:
+            self.pokemon_list[0], self.pokemon_list[self.current_pokemon+1] = self.pokemon_list[self.current_pokemon+1], self.pokemon_list[0]
+            return True
+        else: return False
+
+    def select_pokedex(self) :
+        if self.current_pokemon is 5 or self.current_pokemon is len(self.pokemon_list)-1:
+            return False
+        else : return True
         
     def draw_pokedex_pokemon(self, pokedex_surf):
         if len(pokemon_list) is not 0 :
             index = 0
             for i in pokemon_list:         
-                bag_surf.blit(pygame.transform.scale(i.image,(50,50)), (350,35+index*60)) #  上方圖片
+                bag_surf.blit(pygame.transform.scale(i.image,(50,50)), (350,35+index*60))
                 display_text(bag_surf, i.name, (425,50+index*60))    
-                display_text(bag_surf, 'X'+ str(i.num), (700,50+index*60)) # 幾個 ex. X5 
+                display_text(bag_surf, 'X'+ str(i.num), (700,50+index*60)) 
                 index += 1
                 
-            bag_surf.blit(pygame.transform.scale(interface.items[self.current_item].image,(50,50)),(35,500)) # 下方圖片
-            display_text(bag_surf, interface.items[self.current_item].description, (150, 500)) # 下方圖片說明
+            bag_surf.blit(pygame.transform.scale(interface.items[self.current_item].image,(50,50)),(35,500)) 
+            display_text(bag_surf, interface.items[self.current_item].description, (150, 500)) 
             pygame.draw.rect(bag_surf, (255, 0, 0), ((290, 25+(self.current_item*63)), (485, 65)), 5)
 
-    
+    def draw_computer(self, move_to):
+        computer_surf = pygame.Surface((X_RANGE, Y_RANGE))
+        computer_surf.blit(pygame.transform.scale(COMPUTER_IMGAE['computer_bg'], (X_RANGE, Y_RANGE)), (0,0))
+        j =  k = 0 
+        print(len(self.pokemon_list))
+        for i in range(6,len(self.pokemon_list)):
+            if i % 5 == 1 and i > 6 :
+                k += 1
+                j = 0
+            computer_surf.blit(pygame.transform.scale(self.pokemon_list[i].sketch, (70, 70)), (150+j*100,135+k*100))
+            j += 1
 
+        list_length = len(self.pokemon_list) - 7 # 還要扣掉自身可以帶的6隻
+        if move_to == 'LEFT' and self.current_compokemon > 0:
+            self.current_compokemon -= 1
+        elif move_to == 'RIGHT' and self.current_compokemon < list_length:
+            self.current_compokemon += 1 
+        elif move_to == 'UP' and self.current_compokemon-5 >= 0:
+            self.current_compokemon -= 5 
+        elif move_to == 'DOWN' and self.current_compokemon+5 <= list_length:
+            self.current_compokemon += 5 
+       
+        x = self.current_compokemon % 5
+        y = self.current_compokemon // 5
+        computer_surf.blit(pygame.transform.scale(COMPUTER_IMGAE['pointer'], (40, 40)), (170+x*100,90+y*100))
+        
+        return computer_surf
+
+    def get_poke_level(self):
+        num = 0
+        for poke in self.pokemon_list[:6]:
+            num += poke.level
+
+        if len(self.pokemon_list) > 6:
+            num = num//6
+        else:
+            num = num//len(self.pokemon_list)
+
+        return num-2
