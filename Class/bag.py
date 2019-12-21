@@ -50,6 +50,7 @@ class Interface():
 
 
 class Bag():
+    p_list = []
 
     def __init__(self) :
         self.balls = None
@@ -58,10 +59,10 @@ class Bag():
         self.current_item = 0
         self.interfaces = [Interface('Items',(95,50)),Interface('Poké balls',(65,50))]
 
-    def draw_bag(self, move_to, choose_inside, poke_list) :
+    def draw_bag(self, move_to, inbox_choice, poke_list) :
         bag_surf = pygame.Surface((X_RANGE, Y_RANGE))
         bag_surf.blit(pygame.transform.scale(BAG_IMGAE['bag_bg'],(800,600)), (0,0))
-        if not choose_inside:
+        if not inbox_choice:
             if move_to == 'LEFT' and self.current_interface > 0: self.current_interface -= 1
             elif move_to == 'RIGHT' and self.current_interface < len(self.interfaces)-1 : self.current_interface += 1
             elif move_to == 'UP' and self.current_item > 0: self.current_item -= 1
@@ -69,10 +70,11 @@ class Bag():
 
         display_text(bag_surf, self.interfaces[self.current_interface].name,self.interfaces[self.current_interface].pos)
         self.draw_bag_items(bag_surf, self.interfaces[self.current_interface])
-        if choose_inside:
+        if inbox_choice:
             interface = self.interfaces[self.current_interface]
             if interface.name == 'Poké balls': print('aaaa')
             elif interface.name == 'Items':
+                self.p_list = poke_list
                 if move_to == 'UP' and interface.choose_inside > 0: interface.choose_inside -= 1
                 elif move_to == 'DOWN' and interface.choose_inside < len(poke_list) -1 : interface.choose_inside += 1
                 pygame.draw.rect(bag_surf, (255,213,132), (470,100,280,200))
@@ -121,6 +123,14 @@ class Bag():
         props = interface.items[self.current_item]
         if interface.name == 'Poké balls': print('aaaa')
         elif interface.name == 'Items':
+            if props.name is 'Potion': 
+                self.p_list[interface.choose_inside].remain_blood += 20
+                if self.p_list[interface.choose_inside].remain_blood > \
+                   self.p_list[interface.choose_inside].hp:
+                    self.p_list[interface.choose_inside].remain_blood = \
+                    self.p_list[interface.choose_inside].hp
+
+        return False
 
     def transaction(self) :     
         new_item = Items('PokeBall', 1, 'Catching wild Pokémon props')

@@ -253,7 +253,7 @@ class Battle():
             self.get_hurt('opponent',choose)
             bat_surf = self.draw_battle_round('player',choose,0,0)
             if self.one_die() : 
-                return bat_surf, 8
+                return bat_surf, True
             
         elif attack_time+hurt_time < timer and timer < attack_time*2+hurt_time:
             bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
@@ -268,13 +268,13 @@ class Battle():
             self.get_hurt('player',opp_attack)
             bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
             if self.one_die() : 
-                return bat_surf, 8
+                return bat_surf, True
             
         elif 2*(attack_time+hurt_time) < timer:
             bat_surf = self.draw_battle_round('opponent',opp_attack,0,0)
-            return bat_surf, 4
+            return bat_surf, True
 
-        return bat_surf, 7
+        return bat_surf, False
 
     def draw_battle_over(self, my_shift, opp_shift):
         bat_surf = pygame.Surface((X_RANGE, Y_RANGE))
@@ -290,8 +290,9 @@ class Battle():
 
     def display_dif_msg(self, bat_surf, my_shift, opp_shift):
         value = [my_shift, opp_shift]
-        lose_num = 1
-        if opp_shift is 0 : lose_num = 0
+        lose_num = -1
+        if opp_shift is 0 and my_shift is not 0: lose_num = 0
+        elif opp_shift is not 0 and my_shift is 0: lose_num = 1
 
         if lose_num is 1:
             if 200 <= value[lose_num]:
@@ -300,7 +301,7 @@ class Battle():
                 display_text(bat_surf, self.my_pokemon.name + ' gained ' + str(self.exp_gained) + ' EXP. Points!', (100,515), 20) 
             else :
                 display_text(bat_surf, 'Enemy ' + self.opp_pokemon.name + ' fainted!', (100,515), 20) 
-        else : 
+        elif lose_num is 0 : 
             if 140 <= value[lose_num] : 
                 display_text(bat_surf, 'All of your pokemons fainted', (100,515), 20) 
             else :
