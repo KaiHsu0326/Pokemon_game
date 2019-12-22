@@ -19,11 +19,6 @@ def display_text(bat_surf, str, pos, font_size):
     textRectObj = textSurfaceObj.get_rect()
     bat_surf.blit(textSurfaceObj, pos)
 
-# def display_inbox_text(bat_surf, str, pos):
-#     fontObj = pygame.font.Font('freesansbold.ttf', 20)
-#     textSurfaceObj = fontObj.render(str, True, (128,128,128))
-#     textRectObj = textSurfaceObj.get_rect()
-#     bat_surf.blit(textSurfaceObj, pos)
 
 class Items():
 
@@ -59,9 +54,20 @@ class Bag():
         self.current_item = 0
         self.interfaces = [Interface('Items',(95,50)),Interface('Poké balls',(65,50))]
 
-    def draw_bag(self, move_to, inbox_choice, poke_list) :
+    def check_item(self, interface):
+        for i in range(len(interface.items)):
+            if interface.items[i].num is 0:
+                del interface.items[i]
+
+    def has_item_inside(self):
+        if len(self.interfaces[self.current_interface].items) > 0:
+            return True
+        else: return False
+
+    def draw_bag(self, move_to, inbox_choice, poke_list):
         bag_surf = pygame.Surface((X_RANGE, Y_RANGE))
         bag_surf.blit(pygame.transform.scale(BAG_IMGAE['bag_bg'],(800,600)), (0,0))
+        self.check_item(self.interfaces[self.current_interface])
         if move_to == 'LEFT' :
             if not inbox_choice and self.current_interface > 0: self.current_interface -= 1
             elif inbox_choice: self.use = True
@@ -133,9 +139,10 @@ class Bag():
             self.interfaces[1].items.append(new_item)
 
     def use_props(self):
+        self.use = False
         interface = self.interfaces[self.current_interface]
         props = interface.items[self.current_item]
-        if interface.name == 'Poké balls': return True
+        if interface.name == 'Poké balls': return True, props
         elif interface.name == 'Items':
             if props.name is 'Potion': 
                 props.num -= 1
@@ -145,7 +152,7 @@ class Bag():
                     self.p_list[interface.choose_inside].remain_blood = \
                     self.p_list[interface.choose_inside].hp
 
-        return False
+        return False, None
 
     def transaction(self) :     
         new_item = Items('PokeBall', 1, 'Catching wild Pokémon props')

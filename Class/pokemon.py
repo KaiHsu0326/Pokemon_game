@@ -138,12 +138,9 @@ class Battle():
     opp_attack = exp_gained = 0
 
     def __init__(self, p1, p2) :
-        # self.my_pokemon = p1
-        # self.my_pkm_image = p1.image_back
         self.opp_pokemon = p2
         self.opp_pkm_image = p2.image_front
         self.offset = 0
-        # self.display_move ={ True: p1.move, False: ['FIGHT','BAG','POKEMON','RUN'] } 
         self.set_my_pokemon(p1)
 
     def display_battle_text(self, bat_surf):
@@ -186,10 +183,10 @@ class Battle():
             else : self.opp_pokemon.remain_blood = 0
             print(f'get {hurt} points hurt and opp pokemon hp: {self.opp_pokemon.remain_blood}')
 
-    def display_pokemon(self,bat_surf, poke_site, poke, image, face, hp_image_name, hp_site) :
+    def display_pokemon(self,bat_surf, poke_site, poke, image, face, hp_image_name, hp_site, shrink_size) :
         space_rect = pygame.Rect(poke_site)
         pkm = pygame.transform.scale(image[poke.get_frame_num(face)], \
-            (int(poke.f_size[0]*1.5), int(poke.f_size[1]*1.5)))       
+            (int(poke.f_size[0]*1.5//(1+shrink_size)), int(poke.f_size[1]*1.5//(1+shrink_size))))     
         rect = pkm.get_rect()
         rect.midbottom = space_rect.midbottom
         bat_surf.blit(pkm, rect)
@@ -211,8 +208,8 @@ class Battle():
     def draw_battle(self, move_to, choose_move) :
         bat_surf = pygame.Surface((X_RANGE, Y_RANGE))
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['battle_bg'], (int(self.bg_size[0]*0.63), int(self.bg_size[1]*0.63))), (0,0))
-        self.display_pokemon(bat_surf, (520,70, 135, 140), self.opp_pokemon, self.opp_pkm_image, 'front', 'opp_hp', (50,25)) 
-        self.display_pokemon(bat_surf, (200,250, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325))
+        self.display_pokemon(bat_surf, (520,70, 135, 140), self.opp_pokemon, self.opp_pkm_image, 'front', 'opp_hp', (50,25), 0) 
+        self.display_pokemon(bat_surf, (200,250, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325), 0)
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(500,150)), (0,450)) # 第一塊方格 What should ... do
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
         if not choose_move : self.display_battle_text(bat_surf)
@@ -224,8 +221,8 @@ class Battle():
     def draw_battle_round(self,turn,choose,opp_x,my_x):
         bat_surf = pygame.Surface((X_RANGE, Y_RANGE))
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['battle_bg'], (int(self.bg_size[0]*0.63), int(self.bg_size[1]*0.63))), (0,0))
-        self.display_pokemon(bat_surf, (520+opp_x,70, 135, 140), self.opp_pokemon, self.opp_pkm_image, 'front', 'opp_hp', (50,25)) 
-        self.display_pokemon(bat_surf, (200+my_x,250, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325))
+        self.display_pokemon(bat_surf, (520+opp_x,70, 135, 140), self.opp_pokemon, self.opp_pkm_image, 'front', 'opp_hp', (50,25), 0) 
+        self.display_pokemon(bat_surf, (200+my_x,250, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325), 0)
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(500,150)), (0,450)) # 第一塊方格 What should ... do
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
         if turn is 'player' :
@@ -284,36 +281,49 @@ class Battle():
 
         return bat_surf, False
 
-    def draw_battle_over(self, my_shift, opp_shift):
+    def draw_battle_msg(self, my_shift, opp_shift, catch_poke):
         bat_surf = pygame.Surface((X_RANGE, Y_RANGE))
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['battle_bg'], (int(self.bg_size[0]*0.63), int(self.bg_size[1]*0.63))), (0,0))
         if opp_shift < 10:
-            self.display_pokemon(bat_surf, (520,70+opp_shift*20, 135, 140), self.opp_pokemon, self.opp_pkm_image, 'front', 'opp_hp', (50,25)) 
+            self.display_pokemon(bat_surf, (520,70+opp_shift*20, 135, 140), self.opp_pokemon, self.opp_pkm_image, 'front', 'opp_hp', (50,25), 0) 
+        elif catch_poke is not 0 and opp_shift > 40:
+            self.display_pokemon(bat_surf, (520,70, 135, 140), self.opp_pokemon, self.opp_pkm_image, 'front', 'opp_hp', (50,25), (opp_shift-40)/10) 
+
         if my_shift < 10:
-            self.display_pokemon(bat_surf, (200,250+my_shift*20, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325))
+            self.display_pokemon(bat_surf, (200,250+my_shift*20, 135, 140), self.my_pokemon, self.my_pkm_image, 'back', 'my_hp', (400,325), 0)
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(500,150)), (0,450)) # 第一塊方格 What should ... do
         bat_surf.blit(pygame.transform.scale(BATTLE_IMGAE['text'],(300,150)), (500,450)) # 第二塊方格 FIGHT BAG ...
-        self.display_dif_msg(bat_surf, my_shift, opp_shift)
+        self.display_dif_msg(bat_surf, my_shift, opp_shift, catch_poke)
         return bat_surf
 
-    def display_dif_msg(self, bat_surf, my_shift, opp_shift):
-        value = [my_shift, opp_shift]
-        lose_num = -1
-        if opp_shift is 0 and my_shift is not 0: lose_num = 0
-        elif opp_shift is not 0 and my_shift is 0: lose_num = 1
+    def display_dif_msg(self, bat_surf, my_shift, opp_shift, catch_poke):
+        if catch_poke is 0:
+            value = [my_shift, opp_shift]
+            lose_num = -1
+            if opp_shift is 0 and my_shift is not 0: lose_num = 0
+            elif opp_shift is not 0 and my_shift is 0: lose_num = 1
 
-        if lose_num is 1:
-            if 200 <= value[lose_num]:
-                display_text(bat_surf, self.my_pokemon.name + ' grew to LV. ' + str(self.my_pokemon.level) + '!', (100,515), 20) 
-            elif 150 <= value[lose_num] : 
-                display_text(bat_surf, self.my_pokemon.name + ' gained ' + str(self.exp_gained) + ' EXP. Points!', (100,515), 20) 
-            else :
-                display_text(bat_surf, 'Enemy ' + self.opp_pokemon.name + ' fainted!', (100,515), 20) 
-        elif lose_num is 0 : 
-            if 140 <= value[lose_num] : 
-                display_text(bat_surf, 'All of your pokemons fainted', (100,515), 20) 
-            else :
-                display_text(bat_surf, 'Your Pokemon ' + self.my_pokemon.name + ' fainted!', (100,515), 20) 
+            if lose_num is 1:
+                if 200 <= value[lose_num]:
+                    display_text(bat_surf, self.my_pokemon.name + ' grew to LV. ' + str(self.my_pokemon.level) + '!', (100,515), 20) 
+                elif 150 <= value[lose_num] : 
+                    display_text(bat_surf, self.my_pokemon.name + ' gained ' + str(self.exp_gained) + ' EXP. Points!', (100,515), 20) 
+                else :
+                    display_text(bat_surf, 'Enemy ' + self.opp_pokemon.name + ' fainted!', (100,515), 20) 
+            elif lose_num is 0 : 
+                if 140 <= value[lose_num] : 
+                    display_text(bat_surf, 'All of your pokemons fainted', (100,515), 20) 
+                else :
+                    display_text(bat_surf, 'Your Pokemon ' + self.my_pokemon.name + ' fainted!', (100,515), 20) 
+
+        else :
+            if catch_poke < 130:
+                display_text(bat_surf, f' You throw a {self.props.name} !', (100,515), 20) 
+            elif catch_poke >= 130:
+                if self.catch:
+                    display_text(bat_surf, f' Catcha! {self.opp_pokemon.name} was caught!', (100,515), 20) 
+                else :
+                    display_text(bat_surf, f' {self.opp_pokemon.name} broke free!', (100,515), 20) 
 
     def have_left_move_num(self, choose):
         if self.my_pokemon.move[choose].left_num > 0: return True
@@ -321,7 +331,6 @@ class Battle():
 
     def decrease_move_num(self, choose):
         self.my_pokemon.move[choose].use_move()
-        print(self.my_pokemon.move[choose].left_num)
         self.offset = 0
 
     def one_die(self):
@@ -338,6 +347,35 @@ class Battle():
         self.my_pkm_image = p1.image_back
         self.display_move ={ True: p1.move, False: ['FIGHT','BAG','POKEMON','RUN'] } 
 
+    def set_catch_data(self, props):
+        self.props = props
+        self.catch = False
+        props.num -= 1
+        add_chance = 0
+        if self.opp_pokemon.remain_blood/self.opp_pokemon.hp >= 0.6 : 
+            if random.randint(0,100) < 30+add_chance:
+                self.catch = True
+        elif 0.3 <= self.opp_pokemon.remain_blood/self.opp_pokemon.hp and self.opp_pokemon.remain_blood/self.opp_pokemon.hp < 0.6:
+            if random.randint(0,100) < 50+add_chance:
+                self.catch = True
+        elif self.opp_pokemon.remain_blood/self.opp_pokemon.hp < 0.3 : 
+            if random.randint(0,100) < 70+add_chance:
+                self.catch = True
+
+
+    def draw_catch_pokemon(self, timer, props):
+        
+        if timer <= 40:
+            bat_surf = self.draw_battle_msg(0, 0, timer)
+            bat_surf.blit(pygame.transform.scale(props.image,(50,50)), (562,int(timer*4.1)))
+        else :
+            if not self.catch and timer >= 130:
+                bat_surf = self.draw_battle_msg(0, 0, timer)
+            else:
+                bat_surf = self.draw_battle_msg(0, timer, timer)
+                bat_surf.blit(pygame.transform.scale(props.image,(50,50)), (562,165))
+            
+        return bat_surf, self.catch, self.opp_pokemon
 
 class Pokedex():
     
@@ -513,4 +551,10 @@ class Pokedex():
             self.pokemon_list[self.com_point], self.pokemon_list[self.current_compokemon+6]
 
         self.com_point = 0
-        # self.current_compokemon = 0
+
+    def recover(self, p):
+        p.remain_blood = p.hp
+        for move in p.move:
+            move.left_num = move.total_num
+
+        return p

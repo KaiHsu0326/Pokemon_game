@@ -171,11 +171,13 @@ while True:
                         change_situation(True, 'walking')
 
                 elif get_situation() is 'bag': 
-                    if not inbox_choice: inbox_choice = True
-                    else : 
-                        if bag.use_props() :
-                            print('throw the ball')
+                    if not inbox_choice and bag.has_item_inside(): inbox_choice = True
+                    elif inbox_choice : 
+                        throw_ball, props = bag.use_props()
+                        if throw_ball:
+                            battle.set_catch_data(props)
                             change_situation(False, '')
+                            change_situation(True, 'catch_pokemon')
                         inbox_choice = False
 
                 elif get_situation() is 'pokedex':
@@ -216,7 +218,7 @@ while True:
             change_situation(False, '')
             if battle.one_die():
                 timer = -50
-                change_situation(True, 'other_situation')
+                change_situation(True, 'battle_finished')
             else :
                 inbox_choice = False
 
@@ -237,27 +239,38 @@ while True:
         computer_surf = pokedex.draw_computer(move_to, inbox_choice)
         BASE_SURF.blit(computer_surf, (0,0))
 
-    elif get_situation() is 'other_situation' :
-        if situation[-2] is 'battle':
-            bonus = 0
-            if battle.has_level_up: bonus = 50
-            if timer < 0:
-                bat_surf = battle.draw_battle_over(0, 0)
-            elif 0 < timer and timer < 200+bonus:
-                if battle.my_pokemon_die():
-                    bat_surf = battle.draw_battle_over(timer, 0)
-                else : 
-                    bat_surf = battle.draw_battle_over(0, timer)
-                    if timer is 150:
-                        battle.set_exp()
+    elif get_situation() is 'battle_finished' :
+        bonus = 0
+        if battle.has_level_up: bonus = 50
+        if timer < 0:
+            bat_surf = battle.draw_battle_msg(0, 0)
+        elif 0 < timer and timer < 200+bonus:
+            if battle.my_pokemon_die():
+                bat_surf = battle.draw_battle_msg(timer, 0, 0)
+            else : 
+                bat_surf = battle.draw_battle_msg(0, timer, 0)
+                if timer is 150:
+                    battle.set_exp()
 
-            elif timer > 200+bonus: 
-                change_situation(False, '') # pop to battle situation
-                change_situation(False, '') # pop to walking situation
-                inbox_choice = False
+        elif timer > 200+bonus: 
+            change_situation(False, '') # pop to battle situation
+            change_situation(False, '') # pop to walking situation
+            inbox_choice = False
 
         BASE_SURF.blit(bat_surf, (0,0))
         timer += 1
+
+    elif get_situation() is 'catch_pokemon' :
+        bat_surf, catch, pokemon = battle.draw_catch_pokemon(timer, props)
+        BASE_SURF.blit(bat_surf, (0,0))
+        timer += 1
+        if timer is 250:
+            if catch:
+                change_situation(False, '') # pop to battle situation
+                change_situation(False, '') # pop to walking situation
+                pokedex.pokemon_list.append(pokedex.recover(pokemon))
+            else:
+                change_situation(False, '') # pop to battle situation
 
     elif change_map(move_to):
         ALL_MAPS_DATA[current_map.map_num] = current_map
