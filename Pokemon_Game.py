@@ -1,5 +1,5 @@
 import pygame, sys, os, random, time
-from Class.pokemon import POKEDEX, Pokemon, Battle, Pokedex
+from Class.pokemon import Pokemon, Battle, Pokedex
 from Class.map import Map, X_RANGE, Y_RANGE, MAPS
 from Class.bag import Bag
 
@@ -116,7 +116,7 @@ fontObj = pygame.font.Font('freesansbold.ttf', 35)
 current_map = Map(1,-1)
 bag = Bag()
 player,exits= set_state(current_map.x_screen, current_map.y_screen, current_map.exits)
-init_p = [Pokemon(1,5),Pokemon(7,5),Pokemon(4,5)]
+init_p = [Pokemon(0,5),Pokemon(6,5),Pokemon(3,5)]
 
 while True:
     
@@ -241,21 +241,28 @@ while True:
 
     elif get_situation() is 'battle_finished' :
         bonus = 0
-        if battle.has_level_up: bonus = 50
+        if pokedex.pokemon_list[0].has_level_up: 
+            bonus = 50
         if timer < 0:
             bat_surf = battle.draw_battle_msg(0, 0)
         elif 0 < timer and timer < 200+bonus:
             if battle.my_pokemon_die():
                 bat_surf = battle.draw_battle_msg(timer, 0, 0)
+                if timer >= 140 and not battle.all_pokemon_die():
+                    battle.set_my_pokemon(pokedex.seq_swap_poke())
+                    change_situation(False, '') # pop to battle situation
             else : 
                 bat_surf = battle.draw_battle_msg(0, timer, 0)
                 if timer is 150:
                     battle.set_exp()
 
-        elif timer > 200+bonus: 
+        elif timer >= 200+bonus: 
             change_situation(False, '') # pop to battle situation
             change_situation(False, '') # pop to walking situation
             inbox_choice = False
+            pokedex.pokemon_list[0].has_level_up = False
+            if not battle.my_pokemon_die():
+                bag.add_money(battle.get_money())
 
         BASE_SURF.blit(bat_surf, (0,0))
         timer += 1
@@ -268,7 +275,8 @@ while True:
             if catch:
                 change_situation(False, '') # pop to battle situation
                 change_situation(False, '') # pop to walking situation
-                pokedex.pokemon_list.append(pokedex.recover(pokemon))
+                pokemon.recover()
+                pokedex.pokemon_list.append(pokemon)
             else:
                 change_situation(False, '') # pop to battle situation
 
@@ -305,7 +313,10 @@ while True:
                     pygame.display.update()
                     time.sleep(0.1)
                     moniter = (moniter+1)%3
-                battle = Battle(pokedex.pokemon_list[0],Pokemon(1,pokedex.get_poke_level()))
+
+                opp_data = pokedex.bomb_into_poke()
+                battle = Battle(pokedex.pokemon_list[0],Pokemon(opp_data[0],opp_data[1]))
+                battle.set_poke_list(pokedex.pokemon_list[:6])
                 change_situation(True, 'battle')
 
     pygame.display.update()

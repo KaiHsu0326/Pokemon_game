@@ -1,83 +1,453 @@
-{
-    "Bulbasaur": {
-      "type": "grass",
+[
+  {
+    "_comment": "index 0 ",
+    "name": "Bulbasaur",
+    "type": "grass",
+    "hp": 45,
+    "attack": 49,
+    "defense":49,
+    "add_value": [2,3],
+    "evol_level": 16,
+    "evol": 1
+  },
+  {
+    "_comment": "index 1 ",
+    "name": "Ivysaur",
+    "type": "grass",
+    "hp": 60,
+    "attack": 62,
+    "defense":63,
+    "add_value": [2,3],
+    "evol_level": 32,
+    "evol": 2
+  },
+  {
+    "_comment": "index 2 ",
+    "name": "Venusaur",
+    "type": "grass",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 3 ",
+    "name": "Charmander",
+      "type": "fire",
       "hp": 45,
       "attack": 49,
       "defense":49,
       "add_value": [2,3],
       "evol_level": 16,
-      "evol": "Ivysaur"
-    },
-    "Ivysaur": {
-      "type": "grass",
-      "hp": 60,
-      "attack": 62,
-      "defense":63,
+      "evol": 4
+  },
+  {
+    "_comment": "index 4 ",
+    "name": "Charmeleon",
+    "type": "fire",
+    "hp": 60,
+    "attack": 62,
+    "defense":63,
+    "add_value": [2,3],
+    "evol_level": 32,
+    "evol": 5
+  },
+  {
+    "_comment": "index 5 ",
+    "name": "Charizard",
+    "type": "fire",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 6 ",
+    "name": "Squirtle",
+    "type": "water",
+    "hp": 45,
+    "attack": 49,
+    "defense":49,
+    "add_value": [2,3],
+    "evol_level": 16,
+    "evol": 7
+  },
+  {
+    "_comment": "index 7 ",
+    "name": "Wartortle",
+    "type": "water",
+    "hp": 60,
+    "attack": 62,
+    "defense":63,
+    "add_value": [2,3],
+    "evol_level": 32,
+    "evol": 8
+  },
+  {
+    "_comment": "index 8 ",
+    "name": "Blastoise",
+    "type": "water",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 9 ",
+    "name": "Deoxys",
+    "type": "psychic",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 10 ",
+    "name": "Dratini",
+    "type": "dragon",
+    "hp": 45,
+    "attack": 49,
+    "defense":49,
+    "add_value": [2,3],
+    "evol_level": 16,
+    "evol": 11
+  },
+  {
+    "_comment": "index 11 ",
+    "name": "Dragonair",
+    "type": "dragon",
+    "hp": 60,
+    "attack": 62,
+    "defense":63,
+    "add_value": [2,3],
+    "evol_level": 32,
+    "evol": "Dragonite"
+  },
+  {
+    "_comment": "index 12 ",
+    "name": "Dragonite",
+    "type": "dragon",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 13 ",
+    "name": "Turtwig",
+    "type": "grass",
+    "hp": 45,
+    "attack": 49,
+    "defense":49,
+    "add_value": [2,3],
+    "evol_level": 16,
+    "evol": 14
+  },
+  {
+    "_comment": "index 14 ",
+    "name": "Grotle",
+    "type": "grass",
+    "hp": 60,
+    "attack": 62,
+    "defense":63,
+    "add_value": [2,3],
+    "evol_level": 32,
+    "evol": 15
+  },
+  {
+    "_comment": "index 15 ",
+    "name": "Torterra",
+    "type": "grass",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 16 ",
+    "name": "Chimchar",
+      "type": "fire",
+      "hp": 45,
+      "attack": 49,
+      "defense":49,
       "add_value": [2,3],
-      "evol_level": 32,
-      "evol": "Venusaur"
-    },
-    "Venusaur": {
-      "type": "grass",
-      "hp": 80,
-      "attack": 82,
-      "defense":83,
-      "add_value": [1,2],
-      "evol_level": null,
-      "evol": null
-    },
-    "Charmander": {
-        "type": "fire",
-        "hp": 45,
-        "attack": 49,
-        "defense":49,
-        "add_value": [2,3],
-        "evol_level": 16,
-        "evol": "Charmeleon"
-      },
-      "Charmeleon": {
-        "type": "fire",
-        "hp": 60,
-        "attack": 62,
-        "defense":63,
-        "add_value": [2,3],
-        "evol_level": 32,
-        "evol": "Charizard"
-      },
-      "Charizard": {
-        "type": "fire",
-        "hp": 80,
-        "attack": 82,
-        "defense":83,
-        "add_value": [1,2],
-        "evol_level": null,
-        "evol": null
-      },
-      "Squirtle": {
-        "type": "water",
-        "hp": 45,
-        "attack": 49,
-        "defense":49,
-        "add_value": [2,3],
-        "evol_level": 16,
-        "evol": "Wartortle"
-      },
-      "Wartortle": {
-        "type": "water",
-        "hp": 60,
-        "attack": 62,
-        "defense":63,
-        "add_value": [2,3],
-        "evol_level": 32,
-        "evol": "Blastoise"
-      },
-      "Blastoise": {
-        "type": "water",
-        "hp": 80,
-        "attack": 82,
-        "defense":83,
-        "add_value": [1,2],
-        "evol_level": null,
-        "evol": null
-      }
-}
+      "evol_level": 16,
+      "evol": 17
+  },
+  {
+    "_comment": "index 17 ",
+    "name": "Monferno",
+    "type": "fire",
+    "hp": 60,
+    "attack": 62,
+    "defense":63,
+    "add_value": [2,3],
+    "evol_level": 32,
+    "evol": 18
+  },
+  {
+    "_comment": "index 18 ",
+    "name": "Infernape",
+    "type": "fire",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 19 ",
+    "name": "Piplup",
+    "type": "water",
+    "hp": 45,
+    "attack": 49,
+    "defense":49,
+    "add_value": [2,3],
+    "evol_level": 16,
+    "evol": 20
+  },
+  {
+    "_comment": "index 20 ",
+    "name": "Prinplup",
+    "type": "water",
+    "hp": 60,
+    "attack": 62,
+    "defense":63,
+    "add_value": [2,3],
+    "evol_level": 32,
+    "evol": 21
+  },
+  {
+    "_comment": "index 21 ",
+    "name": "Empoleon",
+    "type": "water",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 22 ",
+    "name": "Articuno",
+    "type": "ice",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 23 ",
+    "name": "Zapdos",
+    "type": "electric",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 24 ",
+    "name": "Moltres",
+    "type": "fire",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 25 ",
+    "name": "Mewtwo",
+    "type": "psychic",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 26 ",
+    "name": "Mew",
+    "type": "psychic",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 27 ",
+    "name": "Suicune",
+    "type": "water",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 28 ",
+    "name": "Raikou",
+    "type": "electric",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 29 ",
+    "name": "Entei",
+    "type": "fire",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 30 ",
+    "name": "Larvitar",
+    "type": "rock",
+    "hp": 45,
+    "attack": 49,
+    "defense":49,
+    "add_value": [2,3],
+    "evol_level": 16,
+    "evol": 31
+  },
+  {
+    "_comment": "index 31 ",
+    "name": "Pupitar",
+    "type": "rock",
+    "hp": 60,
+    "attack": 62,
+    "defense":63,
+    "add_value": [2,3],
+    "evol_level": 32,
+    "evol": 32
+  },
+  {
+    "_comment": "index 32 ",
+    "name": "Tyranitar",
+    "type": "rock",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 33 ",
+    "name": "Lugia",
+    "type": "psychic",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 34 ",
+    "name": "Ho-Oh",
+    "type": "fire",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 35 ",
+    "name": "Kyogre",
+    "type": "water",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 36 ",
+    "name": "Groudon",
+    "type": "rock",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 37 ",
+    "name": "Rayquaza",
+    "type": "dragon",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 38 ",
+    "name": "Dialga",
+    "type": "dragon",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 39 ",
+    "name": "Palkia",
+    "type": "dragon",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  },
+  {
+    "_comment": "index 40 ",
+    "name": "Giratina",
+    "type": "dragon",
+    "hp": 80,
+    "attack": 82,
+    "defense":83,
+    "add_value": [1,2],
+    "evol_level": 999,
+    "evol": null
+  }
+]

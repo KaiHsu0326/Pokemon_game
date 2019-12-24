@@ -6,8 +6,15 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 
 BAG_IMGAE = {'bag_bg' : pygame.image.load(dir_path+'/../image/bag_bg.png'),
              'PokeBall' : pygame.image.load(dir_path+'/../image/poke_balls.png'),
+             'SuperBall' : pygame.image.load(dir_path+'/../image/super_balls.png'),
+             'MasterBall' : pygame.image.load(dir_path+'/../image/mater_balls.png'),
+             'SuperPotion' : pygame.image.load(dir_path+'/../image/super_potion.png'),
              'Potion' : pygame.image.load(dir_path+'/../image/potion.png'),
              'arrow_right' : pygame.image.load(dir_path+'/../image/arrow_right.png')}
+
+SHOP_IMAGE = {'shop_bg' : pygame.image.load(dir_path+'/../image/shop_bg.png'),
+              'arrow_shop' : pygame.image.load(dir_path+'/../image/arrow_shop.png')}
+
 
 BAGDEX = {'balls':['PokeBall'], 
           'props':['Potion'] }
@@ -48,6 +55,7 @@ class Bag():
     p_list = []
     use = False
     def __init__(self) :
+        self.money = 0
         self.balls = None
         self.items = None
         self.current_interface = 1
@@ -63,6 +71,8 @@ class Bag():
         if len(self.interfaces[self.current_interface].items) > 0:
             return True
         else: return False
+
+    def add_money(self, money):self.money += money
 
     def draw_bag(self, move_to, inbox_choice, poke_list):
         bag_surf = pygame.Surface((X_RANGE, Y_RANGE))
@@ -138,11 +148,16 @@ class Bag():
 
             self.interfaces[1].items.append(new_item)
 
-    def use_props(self):
-        self.use = False
+    def get_use(self):
+        return self.use
+
+    def use_props(self):      
         interface = self.interfaces[self.current_interface]
         props = interface.items[self.current_item]
-        if interface.name == 'Poké balls': return True, props
+        if interface.name == 'Poké balls' and self.use is True: 
+            self.use = False
+            return True, props
+
         elif interface.name == 'Items':
             if props.name is 'Potion': 
                 props.num -= 1
@@ -158,4 +173,37 @@ class Bag():
         new_item = Items('PokeBall', 1, 'Catching wild Pokémon props')
         self.add_item(new_item)
 
+    def draw_shop(self,move_to):
+        shop_surf = pygame.Surface((X_RANGE, Y_RANGE))
+        shop_surf.blit(pygame.transform.scale(SHOP_IMAGE['shop_bg'],(800,600)), (0,0))
+
+        shoplist = self.create_shoplist()
+
+        if move_to == 'UP' and self.current_shopitem > 0:
+            self.current_shopitem -= 1
+        elif move_to == 'DOWN' and self.current_shopitem < len(shoplist)-1:
+            self.current_shopitem += 1
+
+        # x : 675 y: +85
+        for i in range(len(shoplist)):
+            display_text(shop_surf, shoplist[i].name, (400,i*85+100), 32)
+            display_text(shop_surf, '$'+shoplist[i].price, (675,i*85+100), 32)
+ 
+        display_text(shop_surf, f'$ {self.money}', (220,100), 32) # 修改這裡 金錢
+        shop_surf.blit(pygame.transform.scale(shoplist[self.current_shopitem].image,(60,60)), (30,350))
+        display_text(shop_surf, shoplist[self.current_shopitem].description, (40,500), 17)
+        shop_surf.blit(pygame.transform.scale(SHOP_IMAGE['arrow_shop'],(30,30)), (365,self.current_shopitem*85+100))
+        
+        return shop_surf
+
+
+    def create_shoplist(self):
+        shoplist = []
+        shoplist.append(Items('PokeBall', 10, 'Catching wild Pokémon props','100'))
+        shoplist.append(Items( 'SuperBall', 10, 'Ball for catching wild Pokémon','300'))
+        shoplist.append(Items('MasterBall', 10, 'Captures wild Pokémon without fail','999'))
+        shoplist.append(Items('Potion', 10, 'Allows Pokémon to recover 20HP','100'))
+        shoplist.append(Items('SuperPotion', 10, 'Allows Pokémon to recover 50HP','200'))
+        
+        return shoplist
             

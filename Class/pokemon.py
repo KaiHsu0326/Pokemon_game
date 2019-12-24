@@ -1,8 +1,6 @@
 import pygame, sys, os, random, time, json
 from .map import X_RANGE, Y_RANGE
 
-POKEDEX = { 1:'Bulbasaur', 2:'Ivysaur', 3:'Venusaur', 4:'Charmander', 5:'Charmeleon',
-            6:'Charizard', 7:'Squirtle', 8:'Wartortle', 9:'Blastoise'}
 
 LEVEL_TOP =[0,0]
 level = 2
@@ -35,18 +33,19 @@ class Pokemon():
     image_front = []
     image_back = []
     frame_num = 0
+    has_level_up = False
 
     def __init__(self,num, level):
-        self.name = POKEDEX[num]
+        self.name = poke_data[num]['name']
         self.image_front, self.image_back = self.load_image()
-        self.sketch = pygame.image.load(self.sketch_path +'/'+ self.name + '_sketch.png')
+        self.sketch = pygame.image.load(self.sketch_path + self.name + '_sketch.png')
         self.f_size = self.image_front[0].get_rect().size
         self.b_size = self.image_back[0].get_rect().size
         self.level = level
-        self.remain_blood = self.hp = poke_data[self.name]['hp']+(level-1)*random.randint(poke_data[self.name]['add_value'][0],poke_data[self.name]['add_value'][1])
-        self.attack = poke_data[self.name]['attack']+(level-1)*random.randint(poke_data[self.name]['add_value'][0],poke_data[self.name]['add_value'][1])
-        self.defense = poke_data[self.name]['defense']+(level-1)*random.randint(poke_data[self.name]['add_value'][0],poke_data[self.name]['add_value'][1])
-        self.move = self.move_type(poke_data[self.name]['type'])
+        self.remain_blood = self.hp = poke_data[num]['hp']+(level-1)*random.randint(poke_data[num]['add_value'][0],poke_data[num]['add_value'][1])
+        self.attack = poke_data[num]['attack']+(level-1)*random.randint(poke_data[num]['add_value'][0],poke_data[num]['add_value'][1])
+        self.defense = poke_data[num]['defense']+(level-1)*random.randint(poke_data[num]['add_value'][0],poke_data[num]['add_value'][1])
+        self.move = self.move_type(poke_data[num]['type'])
         self.exp = 0
         
     def move_type(self, pkm_type):
@@ -60,6 +59,21 @@ class Pokemon():
         elif pkm_type == 'water':
             move = [Move('PoisonPowder',30, 'water', 'entry move'),Move('attack10',20, 'water', 'intermediate move'),
                     Move('attack11',10, 'water', 'andvanced move'),Move('PoisonPowder',5, 'water', 'super move')]
+        elif pkm_type == 'electric':
+            move = [Move('attack13',30, 'water', 'entry move'),Move('attack14',20, 'water', 'intermediate move'),
+                    Move('attack15',10, 'water', 'andvanced move'),Move('attack16',5, 'water', 'super move')]
+        elif pkm_type == 'ice':
+            move = [Move('attack13',30, 'water', 'entry move'),Move('attack14',20, 'water', 'intermediate move'),
+                    Move('attack15',10, 'water', 'andvanced move'),Move('attack16',5, 'water', 'super move')]
+        elif pkm_type == 'psychic':
+            move = [Move('attack13',30, 'water', 'entry move'),Move('attack14',20, 'water', 'intermediate move'),
+                    Move('attack15',10, 'water', 'andvanced move'),Move('attack16',5, 'water', 'super move')]
+        elif pkm_type == 'rock':
+            move = [Move('attack13',30, 'water', 'entry move'),Move('attack14',20, 'water', 'intermediate move'),
+                    Move('attack15',10, 'water', 'andvanced move'),Move('attack16',5, 'water', 'super move')]
+        elif pkm_type == 'dragon':
+            move = [Move('attack13',30, 'water', 'entry move'),Move('attack14',20, 'water', 'intermediate move'),
+                    Move('attack15',10, 'water', 'andvanced move'),Move('attack16',5, 'water', 'super move')]
 
         return move
 
@@ -95,9 +109,15 @@ class Pokemon():
         while self.exp >= LEVEL_TOP[self.level] :
             self.exp -= LEVEL_TOP[self.level] 
             self.level += 1
+            self.recover()
             self.has_level_up = True
 
         return int(width*self.exp/LEVEL_TOP[self.level])
+
+    def recover(self):
+        self.remain_blood = self.hp
+        for move in self.move:
+            move.left_num = move.total_num
 
         
 
@@ -134,8 +154,9 @@ class Battle():
     arrow_direction = [[(520, 485),(665, 485),(520, 535),(665, 535)],
                        [(40, 485),(235, 485),(40, 535),(235, 535)]]
 
-    pos_move = has_level_up = set_exp = False
+    pos_move = set_exp = False
     opp_attack = exp_gained = 0
+    poke_list = []
 
     def __init__(self, p1, p2) :
         self.opp_pokemon = p2
@@ -304,15 +325,18 @@ class Battle():
             elif opp_shift is not 0 and my_shift is 0: lose_num = 1
 
             if lose_num is 1:
+                if value[lose_num] is 150: self.set_money()
+
                 if 200 <= value[lose_num]:
                     display_text(bat_surf, self.my_pokemon.name + ' grew to LV. ' + str(self.my_pokemon.level) + '!', (100,515), 20) 
                 elif 150 <= value[lose_num] : 
-                    display_text(bat_surf, self.my_pokemon.name + ' gained ' + str(self.exp_gained) + ' EXP. Points!', (100,515), 20) 
+                    display_text(bat_surf, self.my_pokemon.name + ' gained ' + str(self.exp_gained) + ' EXP. Points!', (100,505), 20) 
+                    display_text(bat_surf, f'you get {self.money_gained} $ !', (100,530), 20) 
                 else :
                     display_text(bat_surf, 'Enemy ' + self.opp_pokemon.name + ' fainted!', (100,515), 20) 
             elif lose_num is 0 : 
-                if 140 <= value[lose_num] : 
-                    display_text(bat_surf, 'All of your pokemons fainted', (100,515), 20) 
+                if 140 <= value[lose_num] and self.all_pokemon_die(): 
+                        display_text(bat_surf, 'All of your pokemons fainted', (100,515), 20) 
                 else :
                     display_text(bat_surf, 'Your Pokemon ' + self.my_pokemon.name + ' fainted!', (100,515), 20) 
 
@@ -324,6 +348,16 @@ class Battle():
                     display_text(bat_surf, f' Catcha! {self.opp_pokemon.name} was caught!', (100,515), 20) 
                 else :
                     display_text(bat_surf, f' {self.opp_pokemon.name} broke free!', (100,515), 20) 
+
+    def all_pokemon_die(self):
+        for poke in self.poke_list:
+            if poke.remain_blood > 0: return False
+        return True
+
+    def set_money(self):
+        self.money_gained = (self.opp_pokemon.hp + self.opp_pokemon.attack + self.opp_pokemon.defense) + random.randint(100,300)
+
+    def get_money(self): return self.money_gained
 
     def have_left_move_num(self, choose):
         if self.my_pokemon.move[choose].left_num > 0: return True
@@ -377,6 +411,9 @@ class Battle():
             
         return bat_surf, self.catch, self.opp_pokemon
 
+    def set_poke_list(self, p_list):
+        self.poke_list = p_list
+
 class Pokedex():
     
     pokemon_list = []
@@ -387,18 +424,16 @@ class Pokedex():
         self.current_pokemon = 0
         self.current_compokemon = 0
         self.pokemon_list.append(p)
+
+        # self.pokemon_list.append(Pokemon(0,5))
+        # self.pokemon_list.append(Pokemon(1,5))
+        # self.pokemon_list.append(Pokemon(2,5))      
+        # self.pokemon_list.append(Pokemon(4,5))
+        # self.pokemon_list.append(Pokemon(5,5))
+        # self.pokemon_list.append(Pokemon(6,5))
+        # self.pokemon_list.append(Pokemon(7,5))
+        # self.pokemon_list.append(Pokemon(8,5))
         
-        self.pokemon_list.append(Pokemon(2,5))
-        self.pokemon_list.append(Pokemon(3,5))
-        self.pokemon_list.append(Pokemon(4,5))
-        self.pokemon_list.append(Pokemon(5,5))
-        self.pokemon_list.append(Pokemon(6,5))
-        self.pokemon_list.append(Pokemon(7,5))
-        self.pokemon_list.append(Pokemon(8,5))
-        self.pokemon_list.append(Pokemon(9,5))
-
-
-
     def draw_pokedex(self, move_to, inbox_choice):
         pokedex_surf = pygame.Surface((X_RANGE, Y_RANGE))
         pokedex_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['pokedex_bg'], (X_RANGE, Y_RANGE)), (0,0))
@@ -464,12 +499,31 @@ class Pokedex():
         
         return pokedex_surf
 
+    def bomb_into_poke(self):
+        poke_level = self.get_poke_level()
+        chance = []
+        for p_num in range(len(poke_data)):
+            if 32 < poke_level and poke_data[p_num]['evol_level'] is 999 :
+                chance.append(p_num)
+            elif 16 < poke_level and poke_level <=32 and poke_data[p_num]['evol_level'] is 32 :
+                chance.append(p_num)
+            elif poke_level <=16 and poke_data[p_num]['evol_level'] is 16 :
+                chance.append(p_num)
+
+        return (chance[random.randint(0,len(chance)-1)], poke_level)
+ 
     def swap_pokemon(self):
-        if self.change:
+        if self.change and self.pokemon_list[self.current_pokemon+1].remain_blood > 0:
             self.change = False
             self.pokemon_list[0], self.pokemon_list[self.current_pokemon+1] = self.pokemon_list[self.current_pokemon+1], self.pokemon_list[0]
             return True
         else: return False
+
+    def seq_swap_poke(self):
+        for index in range(len(self.pokemon_list)):
+            if self.pokemon_list[index].remain_blood > 0:
+                self.pokemon_list[0], self.pokemon_list[index] = self.pokemon_list[index], self.pokemon_list[0]
+        return self.pokemon_list[0]
 
     def select_pokedex(self) :
         if self.current_pokemon is 5 or self.current_pokemon is len(self.pokemon_list)-1:
@@ -552,9 +606,9 @@ class Pokedex():
 
         self.com_point = 0
 
-    def recover(self, p):
-        p.remain_blood = p.hp
-        for move in p.move:
-            move.left_num = move.total_num
+    # def recover(self, p):
+    #     p.remain_blood = p.hp
+    #     for move in p.move:
+    #         move.left_num = move.total_num
 
-        return p
+    #     return p
