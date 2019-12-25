@@ -143,12 +143,12 @@ while True:
             if e.key == pygame.K_c and get_situation() is 'walking': 
                 change_situation(True, 'computer')
 
-            if e.key == pygame.K_t and get_situation() is 'walking': # Transaction 
-                bag.transaction()
+            if e.key == pygame.K_s and get_situation() is 'walking': # Transaction 
+                change_situation(True, 'shop')
 
             if e.key == pygame.K_x :
                 if inbox_choice: inbox_choice = False
-                elif (get_situation() is 'bag' or get_situation() is 'pokedex' or get_situation() is 'computer') :
+                elif (get_situation() is 'bag' or get_situation() is 'pokedex' or get_situation() is 'computer' or get_situation() is 'shop') :
                     change_situation(False, '')
 
             if e.key == pygame.K_z :
@@ -239,6 +239,10 @@ while True:
     elif get_situation() is 'computer':
         computer_surf = pokedex.draw_computer(move_to, inbox_choice)
         BASE_SURF.blit(computer_surf, (0,0))
+
+    elif get_situation() is 'shop':
+        shop_surf = bag.draw_shop(move_to)
+        BASE_SURF.blit(shop_surf, (0,0))
 
     elif get_situation() is 'battle_finished' :
         bonus = 0

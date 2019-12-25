@@ -29,9 +29,10 @@ def display_text(bat_surf, str, pos, font_size):
 
 class Items():
 
-    def __init__(self, name, num, description) :
+    def __init__(self, name, num, description, price) :
         self.name = name
         self.num = num
+        self.price = price
         self.description = description
         self.image = BAG_IMGAE[name]
         self.type = self.get_type(name)
@@ -46,9 +47,9 @@ class Interface():
         self.name = name
         self.pos = pos
         if name == 'Poké balls':
-            self.items = [Items('PokeBall', 5, 'Catching wild Pokémon props')]
+            self.items = [Items('PokeBall', 5, 'Catching wild Pokémon props', '100')]
         else :
-            self.items = [Items('Potion', 5, 'Allows one Pokémon to recover 20HP')]
+            self.items = [Items('Potion', 5, 'Allows one Pokémon to recover 20HP','100')]
 
 
 class Bag():
@@ -60,6 +61,7 @@ class Bag():
         self.items = None
         self.current_interface = 1
         self.current_item = 0
+        self.current_shopitem = 0
         self.interfaces = [Interface('Items',(95,50)),Interface('Poké balls',(65,50))]
 
     def check_item(self, interface):
@@ -170,7 +172,6 @@ class Bag():
         return False, None
 
     def transaction(self) :     
-        new_item = Items('PokeBall', 1, 'Catching wild Pokémon props')
         self.add_item(new_item)
 
     def draw_shop(self,move_to):
@@ -189,7 +190,7 @@ class Bag():
             display_text(shop_surf, shoplist[i].name, (400,i*85+100), 32)
             display_text(shop_surf, '$'+shoplist[i].price, (675,i*85+100), 32)
  
-        display_text(shop_surf, f'$ {self.money}', (220,100), 32) # 修改這裡 金錢
+        display_text(shop_surf, f'$ {self.money}', (220,100), 32)
         shop_surf.blit(pygame.transform.scale(shoplist[self.current_shopitem].image,(60,60)), (30,350))
         display_text(shop_surf, shoplist[self.current_shopitem].description, (40,500), 17)
         shop_surf.blit(pygame.transform.scale(SHOP_IMAGE['arrow_shop'],(30,30)), (365,self.current_shopitem*85+100))
