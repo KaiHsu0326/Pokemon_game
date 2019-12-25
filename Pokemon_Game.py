@@ -116,11 +116,12 @@ fontObj = pygame.font.Font('freesansbold.ttf', 35)
 current_map = Map(1,-1)
 bag = Bag()
 player,exits= set_state(current_map.x_screen, current_map.y_screen, current_map.exits)
-init_p = [Pokemon(0,5),Pokemon(6,5),Pokemon(3,5)]
+init_p = [Pokemon(0,5),Pokemon(6,7),Pokemon(3,5)]
 
 while True:
     
     move_to = None
+    print(f'pos {player.pos},  map: {current_map.map_num}' )
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             pygame.quit()
@@ -261,11 +262,22 @@ while True:
             change_situation(False, '') # pop to walking situation
             inbox_choice = False
             pokedex.pokemon_list[0].has_level_up = False
+            if pokedex.pokemon_list[0].evol_poke():
+                pokedex.pokemon_list[0] = Pokemon(pokedex.pokemon_list[0].evol_poke(), pokedex.pokemon_list[0].level)
+                change_situation(True, 'evolution')
             if not battle.my_pokemon_die():
                 bag.add_money(battle.get_money())
 
         BASE_SURF.blit(bat_surf, (0,0))
         timer += 1
+
+
+    elif get_situation() is 'evolution' :
+        BASE_SURF.fill((255, 255, 255)) 
+        timer+=1
+        if timer is 200:
+            change_situation(False, '') # pop to walking situation
+
 
     elif get_situation() is 'catch_pokemon' :
         bat_surf, catch, pokemon = battle.draw_catch_pokemon(timer, props)

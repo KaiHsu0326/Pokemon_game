@@ -36,17 +36,26 @@ class Pokemon():
     has_level_up = False
 
     def __init__(self,num, level):
+        self.poke_num = num
         self.name = poke_data[num]['name']
         self.image_front, self.image_back = self.load_image()
         self.sketch = pygame.image.load(self.sketch_path + self.name + '_sketch.png')
         self.f_size = self.image_front[0].get_rect().size
         self.b_size = self.image_back[0].get_rect().size
         self.level = level
-        self.remain_blood = self.hp = poke_data[num]['hp']+(level-1)*random.randint(poke_data[num]['add_value'][0],poke_data[num]['add_value'][1])
-        self.attack = poke_data[num]['attack']+(level-1)*random.randint(poke_data[num]['add_value'][0],poke_data[num]['add_value'][1])
-        self.defense = poke_data[num]['defense']+(level-1)*random.randint(poke_data[num]['add_value'][0],poke_data[num]['add_value'][1])
+        self.cal_hp_atk_def(num, level)
         self.move = self.move_type(poke_data[num]['type'])
         self.exp = 0
+
+    def cal_hp_atk_def(self, num, level):
+        self.hp = 45
+        self.attack = 49
+        self.defense = 49
+        for l in range(level-1):
+            self.hp += random.randint(2,3)
+            self.attack += random.randint(2,3)
+            self.defense += random.randint(2,3)
+        self.remain_blood = self.hp
         
     def move_type(self, pkm_type):
         move = []
@@ -76,6 +85,11 @@ class Pokemon():
                     Move('attack15',10, 'water', 'andvanced move'),Move('attack16',5, 'water', 'super move')]
 
         return move
+
+    def evol_poke(self):
+        if poke_data[self.poke_num]['evol_level'] and self.level is poke_data[self.poke_num]['evol_level']:
+            return poke_data[self.poke_num]['evol']
+        else : return False
 
     def load_image(self) :
         pok_front = []
@@ -109,6 +123,9 @@ class Pokemon():
         while self.exp >= LEVEL_TOP[self.level] :
             self.exp -= LEVEL_TOP[self.level] 
             self.level += 1
+            self.hp += random.randint(2,3) 
+            self.attack += random.randint(2,3) 
+            self.defense += random.randint(2,3) 
             self.recover()
             self.has_level_up = True
 
@@ -164,6 +181,7 @@ class Battle():
         self.offset = 0
         self.set_my_pokemon(p1)
 
+
     def display_battle_text(self, bat_surf):
         display_text(bat_surf, 'What should '+ self.my_pokemon.name + ' do?' , (100,515), 20) 
         display_text(bat_surf, 'FIGHT', (555,490), 20)
@@ -183,6 +201,7 @@ class Battle():
 
     def set_exp(self):
         self.exp_gained = (self.opp_pokemon.hp + self.opp_pokemon.attack + self.opp_pokemon.defense)//3
+        self.exp_gained += self.exp_gained//2 
         self.my_pokemon.exp += self.exp_gained
 
     def get_hurt(self, turn, choose) :
@@ -193,7 +212,8 @@ class Battle():
             if self.my_pokemon.remain_blood > hurt:
                self.my_pokemon.remain_blood -= hurt
             else : self.my_pokemon.remain_blood = 0
-            print(f'get {hurt} points hurt and my pokemon hp remain : {self.my_pokemon.remain_blood} ')
+            print(f'player hp: {self.my_pokemon.hp}, attack: {self.my_pokemon.attack}, defense: {self.my_pokemon.defense}')
+            print(f'my pokemon get {hurt} points hurt and remain : {self.my_pokemon.remain_blood} hp')
 
         elif turn is 'opponent':
             hurt = int(self.my_pokemon.attack*(1+0.06*choose) - self.opp_pokemon.defense)
@@ -202,7 +222,8 @@ class Battle():
             if self.opp_pokemon.remain_blood > hurt:
                self.opp_pokemon.remain_blood -= hurt
             else : self.opp_pokemon.remain_blood = 0
-            print(f'get {hurt} points hurt and opp pokemon hp: {self.opp_pokemon.remain_blood}')
+            print(f'opp hp: {self.opp_pokemon.hp}, attack: {self.opp_pokemon.attack}, defense: {self.opp_pokemon.defense}')
+            print(f'opp pokemon get {hurt} points hurt and remain: {self.opp_pokemon.remain_blood} hp')
 
     def display_pokemon(self,bat_surf, poke_site, poke, image, face, hp_image_name, hp_site, shrink_size) :
         space_rect = pygame.Rect(poke_site)
@@ -503,11 +524,11 @@ class Pokedex():
         poke_level = self.get_poke_level()
         chance = []
         for p_num in range(len(poke_data)):
-            if 32 < poke_level and poke_data[p_num]['evol_level'] is 999 :
+            if 16 < poke_level and poke_data[p_num]['evol_level'] is 999 :
                 chance.append(p_num)
-            elif 16 < poke_level and poke_level <=32 and poke_data[p_num]['evol_level'] is 32 :
+            elif 8 < poke_level and poke_level <=16 and poke_data[p_num]['evol_level'] is 16 :
                 chance.append(p_num)
-            elif poke_level <=16 and poke_data[p_num]['evol_level'] is 16 :
+            elif poke_level <=8 and poke_data[p_num]['evol_level'] is 8 :
                 chance.append(p_num)
 
         return (chance[random.randint(0,len(chance)-1)], poke_level)
