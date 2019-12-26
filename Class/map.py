@@ -48,7 +48,7 @@ class Map() :
         self.map_height = len(self.map_data)
         self.exits = EXITS[map_num]
         self.trigger_dir = TRIGGER_DIR[map_num]
-        self.first = False
+        self.first = True
 
         if from_map_num is -1:
             self.x_screen = 7
@@ -111,10 +111,13 @@ class Map() :
         self.map_data[tmp_player_pos[0]][tmp_player_pos[1]] == 'x':
             return
                 
+        if self.first:
+            print('5555555555555555555555555555555555555555555555555')
         player.pos = tmp_player_pos
         if player.pos[0]* TILE_FLOOR_HEIGHT < Y_RANGE//2 : self.y_screen = 0   
         elif player.pos[0]* TILE_FLOOR_HEIGHT > (self.map_height-1)*TILE_FLOOR_HEIGHT+TILE_HEIGHT-Y_RANGE/2 and \
             not self.first: 
+            print('aaaaa')
             self.y_screen = self.y_screen   
             self.y_border = True
         else : 
@@ -124,10 +127,13 @@ class Map() :
             # else: 
             self.y_screen = (Y_RANGE//2-player.pos[0]* TILE_FLOOR_HEIGHT)//TILE_FLOOR_HEIGHT
 
+        print(f'y_screen: {self.y_screen}')
         if player.pos[1]* TILE_WIDTH < X_RANGE//2 : self.x_screen = 0
         elif player.pos[1]* TILE_WIDTH > (self.map_midth-1)*TILE_WIDTH-X_RANGE//2 and \
             not self.first: 
-            self.x_screen = self.x_screen
+            print(f'x_screen : {self.x_screen}, playerpos: {player.pos[1]* TILE_WIDTH}, border: {(self.map_midth-1)*TILE_WIDTH-X_RANGE//2} ')
+            # self.x_screen = self.x_screen
+            self.x_screen = -(((self.map_midth-1)*TILE_WIDTH-X_RANGE)//TILE_WIDTH+1)
             self.x_border = True
         else : 
             # if self.x_border : 
