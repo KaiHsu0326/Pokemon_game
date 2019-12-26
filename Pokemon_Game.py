@@ -121,7 +121,7 @@ init_p = [Pokemon(0,5),Pokemon(6,7),Pokemon(3,5)]
 while True:
     
     move_to = None
-    print(f'pos {player.pos},  map: {current_map.map_num}' )
+    
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             pygame.quit()
@@ -300,6 +300,7 @@ while True:
         ALL_MAPS_DATA[current_map.map_num] = current_map
         current_map = Map(current_map.exits[player.pos], current_map.map_num)
         player,exits= set_state(current_map.x_screen, current_map.y_screen, current_map.exits.keys())
+        current_map.x_screen = current_map.y_screen = 0
 
     else :
         current_map.make_move( player, move_to)
