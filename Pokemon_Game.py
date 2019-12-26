@@ -169,12 +169,12 @@ while True:
                     elif choose is 2:
                         change_situation(True, 'pokedex')
                     elif choose is 3:
-                        change_situation(True, 'walking')
+                        change_situation(False, '')
 
                 elif get_situation() is 'bag': 
                     if not inbox_choice and bag.has_item_inside(): inbox_choice = True
-                    elif inbox_choice : 
-                        throw_ball, props = bag.use_props()
+                    elif inbox_choice: 
+                        throw_ball, props = bag.use_props(situation)
                         if throw_ball:
                             battle.set_catch_data(props)
                             change_situation(False, '')
@@ -198,6 +198,13 @@ while True:
                         pokedex.swap_com_poke()
                         inbox_choice = False
                     else : 
+                        inbox_choice = True
+                        
+                elif get_situation() is 'shop':
+                    if inbox_choice:
+                        bag.transaction()
+                        inbox_choice = False
+                    else :
                         inbox_choice = True
 
     if get_situation() is 'begin' : draw_begin_cover()
@@ -241,7 +248,7 @@ while True:
         BASE_SURF.blit(computer_surf, (0,0))
 
     elif get_situation() is 'shop':
-        shop_surf = bag.draw_shop(move_to)
+        shop_surf = bag.draw_shop(move_to, inbox_choice)
         BASE_SURF.blit(shop_surf, (0,0))
 
     elif get_situation() is 'battle_finished' :
@@ -267,7 +274,7 @@ while True:
             inbox_choice = False
             pokedex.pokemon_list[0].has_level_up = False
             if pokedex.pokemon_list[0].evol_poke():
-                pokedex.pokemon_list[0] = Pokemon(pokedex.pokemon_list[0].evol_poke(), pokedex.pokemon_list[0].level)
+                # pokedex.pokemon_list[0] = Pokemon(pokedex.pokemon_list[0].evol_poke(), pokedex.pokemon_list[0].level)
                 change_situation(True, 'evolution')
             if not battle.my_pokemon_die():
                 bag.add_money(battle.get_money())
@@ -277,10 +284,13 @@ while True:
 
 
     elif get_situation() is 'evolution' :
-        BASE_SURF.fill((255, 255, 255)) 
-        timer+=1
+        evol_surf, evol = pokedex.pokemon_list[0].draw_evolution(timer)
+        if evol: pokedex.pokemon_list[0] = evol
         if timer is 200:
             change_situation(False, '') # pop to walking situation
+            # pokedex.pokemon_list[0] = Pokemon(pokedex.pokemon_list[0].evol_poke(), pokedex.pokemon_list[0].level)
+        timer += 1
+        BASE_SURF.blit(evol_surf, (0,0))
 
 
     elif get_situation() is 'catch_pokemon' :
@@ -300,7 +310,6 @@ while True:
         ALL_MAPS_DATA[current_map.map_num] = current_map
         current_map = Map(current_map.exits[player.pos], current_map.map_num)
         player,exits= set_state(current_map.x_screen, current_map.y_screen, current_map.exits.keys())
-        current_map.x_screen = current_map.y_screen = 0
 
     else :
         current_map.make_move( player, move_to)

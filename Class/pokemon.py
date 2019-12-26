@@ -136,6 +136,26 @@ class Pokemon():
         for move in self.move:
             move.left_num = move.total_num
 
+    def draw_evolution(self,timer):
+        evol_pkm = None
+        evolution_surf = pygame.Surface((X_RANGE, Y_RANGE))
+        evolution_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['evolution_bg'], (X_RANGE, Y_RANGE)), (0,0))
+
+        if timer <= 100:
+            evolution_surf.blit(pygame.transform.scale(self.image_front[self.get_frame_num('front')],(100-int(timer),100-int(timer))), (360,340))
+            display_text(evolution_surf, 'Your '+ self.name + ' is about to evolve', (150,525), 30)
+        else:
+            if timer is 101:
+                evol_pkm = Pokemon(self.evol_poke(), self.level)
+                evol_pkm.pre_name = self.name 
+                evolution_surf.blit(pygame.transform.scale(evol_pkm.image_front[self.get_frame_num('front')],(-100+int(timer),-100+int(timer))), (360,340))
+                display_text(evolution_surf, 'Congratulations! '+ self.name + ' evolved into ' + evol_pkm.name, (75,525), 30)
+            else :
+                evolution_surf.blit(pygame.transform.scale(self.image_front[self.get_frame_num('front')],(-100+int(timer),-100+int(timer))), (360,340))
+                display_text(evolution_surf, 'Congratulations! '+ self.pre_name + ' evolved into ' + self.name, (75,525), 30)
+
+        return evolution_surf, evol_pkm
+
         
 
 BATTLE_IMGAE = {'battle_bg' : pygame.image.load(dir_path+'/../image/battle_bg.png'),
@@ -148,7 +168,8 @@ POKEDEX_IMGAE = {'pokedex_bg' : pygame.image.load(dir_path+'/../image/pokedex_bg
                  'not_choose_poke' : pygame.image.load(dir_path+'/../image/not_choose_poke.png'),
                  'first_poke' : pygame.image.load(dir_path+'/../image/first_poke.png'), 
                  'choose_poke' : pygame.image.load(dir_path+'/../image/choose_poke.png'),
-                 'choose_cancel' : pygame.image.load(dir_path+'/../image/choose_cancel.png'),}
+                 'choose_cancel' : pygame.image.load(dir_path+'/../image/choose_cancel.png'),
+                 'evolution_bg' : pygame.image.load(dir_path+'/../image/evolution_bg.png'),}
 
 COMPUTER_IMGAE = {'computer_bg' : pygame.image.load(dir_path+'/../image/computer_bg.png'),
                   'pointer' : pygame.image.load(dir_path+'/../image/pointer.png'), }
@@ -445,15 +466,6 @@ class Pokedex():
         self.current_pokemon = 0
         self.current_compokemon = 0
         self.pokemon_list.append(p)
-
-        # self.pokemon_list.append(Pokemon(0,5))
-        # self.pokemon_list.append(Pokemon(1,5))
-        # self.pokemon_list.append(Pokemon(2,5))      
-        # self.pokemon_list.append(Pokemon(4,5))
-        # self.pokemon_list.append(Pokemon(5,5))
-        # self.pokemon_list.append(Pokemon(6,5))
-        # self.pokemon_list.append(Pokemon(7,5))
-        # self.pokemon_list.append(Pokemon(8,5))
         
     def draw_pokedex(self, move_to, inbox_choice):
         pokedex_surf = pygame.Surface((X_RANGE, Y_RANGE))
@@ -626,10 +638,3 @@ class Pokedex():
             self.pokemon_list[self.com_point], self.pokemon_list[self.current_compokemon+6]
 
         self.com_point = 0
-
-    # def recover(self, p):
-    #     p.remain_blood = p.hp
-    #     for move in p.move:
-    #         move.left_num = move.total_num
-
-    #     return p

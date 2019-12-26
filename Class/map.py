@@ -15,20 +15,20 @@ X_RANGE, Y_RANGE = 800,600
     7: boss_map 
 '''
 EXITS = {1:{ (11,4): 2}, 
-         2:{ (0,8): 1, (8,15): 3 }, 
+         2:{ (0,2): 1, (8,15): 3 }, 
          3:{ (5,0): 2, (14,4): 4 }, 
          4:{ (0,4): 3, (15,7): 5 },
-         5:{ (0,2): 4, (11,9): 6 },
-         6:{ (2,0): 5, (2,21): 7 },
-         7:{ (4,0): 6} } 
+         5:{ (0,6): 4, (11,15): 6 },
+         6:{ (6,0): 5, (6,21): 7 },
+         7:{ (6,0): 6} } 
         
 CONVERSE_EXITS = {1:{ 2: (11,4) },
-                  2:{ 1: (0,8), 3: (8,15) },
+                  2:{ 1: (0,2), 3: (8,15) },
                   3:{ 2: (5,0), 4: (14,4) },
                   4:{ 3: (0,4), 5: (15,7) },
-                  5:{ 4: (0,2), 6: (11,9) },
-                  6:{ 5: (2,0), 7: (2,21) },
-                  7:{ 6: (4,0)} }
+                  5:{ 4: (0,6), 6: (11,15) },
+                  6:{ 5: (6,0), 7: (6,21) },
+                  7:{ 6: (6,0)} }
 
 TRIGGER_DIR = {1: { 2:'DOWN'},
                2: { 1:'UP', 3:'RIGHT'},
@@ -37,6 +37,8 @@ TRIGGER_DIR = {1: { 2:'DOWN'},
                5: { 4:'UP', 6:'RIGHT'},
                6: { 5:'LEFT', 7:'RIGHT'},
                7: { 6:'LEFT'} }
+
+CHALLENGER_SPOT= {2:[(12,5),(8,11)]}
 
 
 class Map() :
@@ -48,7 +50,6 @@ class Map() :
         self.map_height = len(self.map_data)
         self.exits = EXITS[map_num]
         self.trigger_dir = TRIGGER_DIR[map_num]
-        self.first = True
 
         if from_map_num is -1:
             self.x_screen = 7
@@ -69,6 +70,7 @@ class Map() :
         map_surf_h = (self.map_height-1) * TILE_FLOOR_HEIGHT + TILE_HEIGHT
         map_surf = pygame.Surface((map_surf_w, map_surf_h))
         map_surf.blit(pygame.transform.scale(SCENSE_IMAGES['sea'], (X_RANGE,Y_RANGE)),(0,0))   # start with a blank color on the surface.
+        map_surf.blit(pygame.transform.scale(SCENSE_IMAGES['sea'], (X_RANGE,Y_RANGE)),(X_RANGE,0))
         # Draw the tile sprites onto this surface.
         for r in range(len(self.map_data)):
             for c in range(len(self.map_data[r])):
@@ -87,6 +89,10 @@ class Map() :
                 # Last draw the player on the board.
                 if (r, c) == player.pos:
                     map_surf.blit(SCENSE_IMAGES['boy'], space_rect)
+
+                if self.map_num in CHALLENGER_SPOT and (r, c) in CHALLENGER_SPOT[self.map_num]:
+                    map_surf.blit(SCENSE_IMAGES['challenger'], space_rect)
+
         if map_surf_w < X_RANGE and map_surf_h < Y_RANGE: return map_surf, True
         else : return map_surf, False
 
@@ -108,38 +114,23 @@ class Map() :
         if tmp_player_pos[0] >= self.map_height or tmp_player_pos[1] >= self.map_midth  or \
         tmp_player_pos[0] < 0 or tmp_player_pos[1] < 0 or \
         self.map_data[tmp_player_pos[0]][tmp_player_pos[1]] == '#' or \
-        self.map_data[tmp_player_pos[0]][tmp_player_pos[1]] == 'x':
+        self.map_data[tmp_player_pos[0]][tmp_player_pos[1]] == 'x' or \
+        self.map_data[tmp_player_pos[0]][tmp_player_pos[1]] == '1' or \
+        self.map_data[tmp_player_pos[0]][tmp_player_pos[1]] == 'Tt' or \
+        self.map_data[tmp_player_pos[0]][tmp_player_pos[1]] == 'Ts':
             return
                 
-        if self.first:
-            print('5555555555555555555555555555555555555555555555555')
         player.pos = tmp_player_pos
         if player.pos[0]* TILE_FLOOR_HEIGHT < Y_RANGE//2 : self.y_screen = 0   
-        elif player.pos[0]* TILE_FLOOR_HEIGHT > (self.map_height-1)*TILE_FLOOR_HEIGHT+TILE_HEIGHT-Y_RANGE/2 and \
-            not self.first: 
-            print('aaaaa')
-            self.y_screen = self.y_screen   
-            self.y_border = True
+        elif player.pos[0]* TILE_FLOOR_HEIGHT > (self.map_height-1)*TILE_FLOOR_HEIGHT+TILE_HEIGHT-Y_RANGE/2 : 
+            self.y_screen = -(((self.map_height-1)*TILE_FLOOR_HEIGHT+TILE_HEIGHT-Y_RANGE)//TILE_FLOOR_HEIGHT)
         else : 
-            # if self.y_border :
-            #     self.y_border = False
-            # # else :self.y_screen -= offset[0]
-            # else: 
             self.y_screen = (Y_RANGE//2-player.pos[0]* TILE_FLOOR_HEIGHT)//TILE_FLOOR_HEIGHT
 
-        print(f'y_screen: {self.y_screen}')
         if player.pos[1]* TILE_WIDTH < X_RANGE//2 : self.x_screen = 0
-        elif player.pos[1]* TILE_WIDTH > (self.map_midth-1)*TILE_WIDTH-X_RANGE//2 and \
-            not self.first: 
-            print(f'x_screen : {self.x_screen}, playerpos: {player.pos[1]* TILE_WIDTH}, border: {(self.map_midth-1)*TILE_WIDTH-X_RANGE//2} ')
-            # self.x_screen = self.x_screen
+        elif player.pos[1]* TILE_WIDTH > (self.map_midth-1)*TILE_WIDTH-X_RANGE//2 : 
             self.x_screen = -(((self.map_midth-1)*TILE_WIDTH-X_RANGE)//TILE_WIDTH+1)
-            self.x_border = True
         else : 
-            # if self.x_border : 
-            #     self.x_border = False
-            # # else : self.x_screen -= offset[1]
-            # else: 
             self.x_screen = (X_RANGE//2-player.pos[1]* TILE_WIDTH)//TILE_WIDTH-1
         self.first = False
 
@@ -155,6 +146,7 @@ SCENSE_IMAGES = {'selector': pygame.image.load(image_path+'Selector.png'),
               'inside floor': pygame.image.load(image_path+'Plain_Block.png'),
               'grass': pygame.image.load(image_path+'Grass_Block.png'),
               'boy': pygame.image.load(image_path+'boy.png'),
+              'challenger': pygame.image.load(image_path+'horngirl.png'),
               'rock': pygame.image.load(image_path+'Rock1.png'),
               'sea': pygame.image.load(image_path+'sea.png')}
 
@@ -186,27 +178,31 @@ start_map = [[' ',' ',' ',' ','#',' ',' ',' ',' '],
              [' ','#','#','1','o','1','#','#',' '],
             ]
 
-boss_map =  [['x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#'],
-             ['x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#'],
-             ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'],
-             ['#','o','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#'],
-             ['o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o'],
-             ['#','o','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#'],
-             ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'],
-             ['x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#'],
-             ['x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#','x','x','x','x','x','x','x','x','#'],
+boss_map =  [[' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+             [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+             ['x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#'],
+             ['x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#'],
+             ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'],
+             ['#','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#'],
+             ['o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o'],
+             ['#','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#'],
+             ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'],
+             ['x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#'],
+             ['x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#'],
+             [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+             [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
              ]
 
 forest_map1 = [['Tt','Tt','o','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
               ['Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
               ['Tt','Ts','o' ,'Ts','Ts','Ts','Ts','Ts','Ts','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
               ['Tt','Ts','o' ,'Ts','Ts','Ts','Ts','Ts','Ts','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','#' ,'o' ,'#' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','x' ,'o' ,'x' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
               ['Tt','Tt','M' ,'M' ,'M' ,'1' ,'1' ,'1' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt'],
               ['Tt','M' ,'M' ,'M' ,'M' ,'M' ,'1' ,'M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt'],
-              ['Tt','M' ,'M' ,'M' ,'M' ,'M' ,'1' ,'M' ,'M' ,'M' ,'M' ,'o' ,'Tt','Tt','Tt','#' ],
+              ['Tt','M' ,'M' ,'M' ,'M' ,'M' ,'1' ,'M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','x' ],
               ['Tt','Tt','M' ,'M' ,'M' ,'M' ,'1' ,'o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'o' ],
-              ['Tt','Tt','M' ,'M' ,'M' ,'M' ,'Tt','o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'#' ],
+              ['Tt','Tt','M' ,'M' ,'M' ,'M' ,'Tt','o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'x' ],
               ['Tt','Tt','o' ,'Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt'],
               ['Tt','o' ,'o' ,'o' ,'o' ,'Tt','Tt','M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt'],
               ['Tt','Tt','o' ,'o' ,'o' ,'o' ,'o', 'M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt'],
@@ -218,9 +214,9 @@ forest_map2 = [['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'
               ['Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt','Tt','Tt'],
               ['Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt','Tt','Tt'],
               ['Tt','Tt','Tt','o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['#' ,'Tt','o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt','Tt'],
+              ['x' ,'Tt','o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt','Tt','Tt'],
               ['o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'Tt','Tt','M' ,'M' ,'Tt','Tt','Tt','Tt','Tt'],
-              ['#' ,'o' ,'o' ,'o' ,'Tt','Tt','o' ,'Tt','Tt','1' ,'1' ,'1' ,'M' ,'M' ,'Tt','Tt'],
+              ['x' ,'o' ,'o' ,'o' ,'Tt','Tt','o' ,'Tt','Tt','1' ,'1' ,'1' ,'M' ,'M' ,'Tt','Tt'],
               ['Tt','M' ,'M' ,'Tt','Tt','Tt','o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'Tt','Tt'],
               ['Tt','M' ,'Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'Tt','Tt'],
               ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'M' ,'Tt','Tt'],
@@ -228,10 +224,10 @@ forest_map2 = [['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'
               ['Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt'],
               ['Tt','Tt','Tt','Tt','o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'Tt'],
               ['Tt','Tt','Tt','Tt','o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'1' ,'Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','o' ,'1' ,'1' ,'1' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','x' ,'o' ,'x' ,'1' ,'1' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
              ]
 
-forest_map3 = [['Tt','Tt','Tt','#' ,'o' ,'#' ,'1' ,'1' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+forest_map3 = [['Tt','Tt','Tt','x' ,'o' ,'x' ,'1' ,'1' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
               ['Tt','M' ,'M' ,'M' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt'],
               ['Tt','Tt','M' ,'M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt'],
               ['Tt','Tt','M' ,'M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'M' ,'Tt'],
@@ -245,120 +241,48 @@ forest_map3 = [['Tt','Tt','Tt','#' ,'o' ,'#' ,'1' ,'1' ,'Tt','Tt','Tt','Tt','Tt'
               ['1' ,'1' ,'M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'Tt','Tt','Tt'],
               ['1' ,'1' ,'M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'Tt','Tt'],
               ['1' ,'1' ,'M' ,'M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'M' ,'M' ,'M' ,'Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','#' ,'o' ,'#' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
               ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','x' ,'o' ,'x' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
               ]
 
-forest_map4 = [['Tt','Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','#' ,'o' ,'#' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'Ts','Ts','Ts','Ts','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'#' ,'#' ,'#' ,'#' ,'#' ],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'#' ],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'1' ],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'1' ],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'#' ],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'M' ,'#' ,'#' ,'#' ,'#' ,'#' ],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'M' ,'Ts','Ts','Ts','Ts','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Ts','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
-              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+forest_map4 = [['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','o' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','x' ,'o' ,'x' ,'Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'Ts','Ts','Ts','Ts','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'M' ,'M' ,'M' ,'M' ,'#' ,'#' ,'#' ,'#' ,'#' ],
+              ['Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'#' ],
+              ['Tt','Tt','Tt','Tt','Tt','o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'x' ],
+              ['Tt','Tt','Tt','Tt','Tt','M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ],
+              ['Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'x' ],
+              ['Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'#' ],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'M' ,'#' ,'#' ,'#' ,'#' ,'#' ],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','M' ,'M' ,'M' ,'M' ,'Ts','Ts','Ts','Ts','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','Ts','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
+              ['Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt','Tt'],
               ]
 
-bridge_map = [['#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#', '#' ,'#' ],
-              ['1' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'1' ],
-              ['o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ],
-              ['1' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'1' ],
+bridge_map = [
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
               ['#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#', '#' ,'#' ],
+              ['x' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'x' ],
+              ['o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ],
+              ['x' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'o' ,'x' ],
+              ['#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#' ,'#', '#' ,'#' ],
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
+              [' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ' ,' ', ' ' ,' ' ],
               ]
 
-# game_map = [ [' ',' ',' ',' ',' ',' ',' '],
-#            ['x','#','#','#','#','x',' '],
-#            ['#','o','o','o','o','#','x'],
-#            ['#','o','o','M','M','o','#'],
-#            ['#','o','M','M','M','o','o'],
-#            ['#','o','o','M','M','o','#'],
-#            ['#','o','o','o','o','o','#'],
-#            ['x','#','#','#','#','o','x']]
-
-# game_map2 = [['o','o','#','#','#','o','o','o'],
-#             ['#','#','#','o','o','o','#','o'],
-#             ['#','o','o','o','o','o','#','o'],
-#             ['#','#','#','o','o','o','#','o'],
-#             ['#','o','#','#','o','o','#','#'],
-#             ['#','o','#','o','o','o','#','#'],
-#             ['#','o','o','o','o','o','o','#'],
-#             ['#','o','o','o','o','o','o','o'],
-#             ['#','#','#','#','#','#','#','#']]
-
-# game_map3 = [['M','M','#','#','#','#','#','M','M','M','#','#','#','#','#','M','#','#','M'],
-#             ['#','o','o','#','#','M'],
-#             ['#','o','o','#','#','M'],
-#             ['#','o','o','#','#','M'],
-#             ['#','o','o','#','#','M'],
-#             ['#','o','o','#','#','M'],
-#             ['#','o','o','#','#','M'],            
-#             ['#','o','o','#','#','M'],
-#             ['#','o','o','#','#','M'],
-#             ['o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','#','#','#','#','#','#','#','M','M','#','#','#','#','#','M','M','#','M']]
-
-# game_map4 = [['M','M','#','#','#','#','#','M','M','M','#','#','#','#','#','M','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['o','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','o','o','o','o','#','o','o','o','o','o','o','o','o','#','#','M'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','o','o','M','M','o','o','o','o','M','M','o','o','o','o','M','M','o','o'],
-#             ['#','#','#','#','#','#','#','#','M','M','#','#','#','#','#','M','M','#','M']]
-
-# MAPS = {1:start_map, 2:forest_map, 3:bridge_map,4:boss_map}
 MAPS = {1:start_map, 2:forest_map1, 3:forest_map2, 4:forest_map3, 5:forest_map4, 6:bridge_map, 7:boss_map}

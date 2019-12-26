@@ -16,8 +16,8 @@ SHOP_IMAGE = {'shop_bg' : pygame.image.load(dir_path+'/../image/shop_bg.png'),
               'arrow_shop' : pygame.image.load(dir_path+'/../image/arrow_shop.png')}
 
 
-BAGDEX = {'balls':['PokeBall'], 
-          'props':['Potion'] }
+BAGDEX = {'balls':['PokeBall','SuperBall','MasterBall'], 
+          'props':['Potion','SuperPotion'] }
 
 
 def display_text(bat_surf, str, pos, font_size):
@@ -51,6 +51,11 @@ class Interface():
         else :
             self.items = [Items('Potion', 5, 'Allows one Pokémon to recover 20HP','100')]
 
+shoplist = [Items('PokeBall', 10, 'Catching wild Pokémon props','100'),
+            Items('SuperBall', 10, 'Ball for catching wild Pokémon','300'),
+            Items('MasterBall', 10, 'Captures wild Pokémon without fail','999'),
+            Items('Potion', 10, 'Allows Pokémon to recover 20HP','100'),
+            Items('SuperPotion', 10, 'Allows Pokémon to recover 50HP','200')]
 
 class Bag():
     p_list = []
@@ -134,6 +139,7 @@ class Bag():
             pygame.draw.rect(bag_surf, (255, 0, 0), ((290, 25+(self.current_item*63)), (485, 65)), 5)
 
     def add_item(self, new_item): 
+        
         if new_item.type is 'props':
             for item in self.interfaces[0].items:
                 if new_item.name is item.name:
@@ -153,11 +159,10 @@ class Bag():
     def get_use(self):
         return self.use
 
-    def use_props(self):      
+    def use_props(self, situ):      
         interface = self.interfaces[self.current_interface]
         props = interface.items[self.current_item]
-        if interface.name == 'Poké balls' and self.use is True: 
-            self.use = False
+        if interface.name == 'Poké balls' and self.use and 'battle' in situ: 
             return True, props
 
         elif interface.name == 'Items':
@@ -168,22 +173,34 @@ class Bag():
                    self.p_list[interface.choose_inside].hp:
                     self.p_list[interface.choose_inside].remain_blood = \
                     self.p_list[interface.choose_inside].hp
-
+                    
+            elif props.name is 'SuperPotion': 
+                props.num -= 1
+                self.p_list[interface.choose_inside].remain_blood += 50
+                if self.p_list[interface.choose_inside].remain_blood > \
+                   self.p_list[interface.choose_inside].hp:
+                    self.p_list[interface.choose_inside].remain_blood = \
+                    self.p_list[interface.choose_inside].hp
+                    
+        self.use = False
         return False, None
 
-    def transaction(self) :     
-        self.add_item(new_item)
+    def transaction(self) :   
+        self.add_item(shoplist[self.current_shopitem])
+        self.use = False
 
-    def draw_shop(self,move_to):
+    def draw_shop(self,move_to, inbox_choice):
         shop_surf = pygame.Surface((X_RANGE, Y_RANGE))
         shop_surf.blit(pygame.transform.scale(SHOP_IMAGE['shop_bg'],(800,600)), (0,0))
-
-        shoplist = self.create_shoplist()
 
         if move_to == 'UP' and self.current_shopitem > 0:
             self.current_shopitem -= 1
         elif move_to == 'DOWN' and self.current_shopitem < len(shoplist)-1:
             self.current_shopitem += 1
+        elif move_to == 'LEFT':
+            self.use = True
+        elif move_to == 'RIGHT':
+            self.use = False
 
         # x : 675 y: +85
         for i in range(len(shoplist)):
@@ -195,16 +212,16 @@ class Bag():
         display_text(shop_surf, shoplist[self.current_shopitem].description, (40,500), 17)
         shop_surf.blit(pygame.transform.scale(SHOP_IMAGE['arrow_shop'],(30,30)), (365,self.current_shopitem*85+100))
         
+        if inbox_choice:
+            pygame.draw.rect(shop_surf,(255,213,132),(200,200,400,200))
+            display_text(shop_surf, f'Do you want to buy {shoplist[self.current_shopitem].name}?', (250, 250), 20)
+            display_text(shop_surf, '[Yes]', (300, 300), 25)
+            display_text(shop_surf, '[No]', (450, 300), 25)
+            if self.use :
+                shop_surf.blit(BAG_IMGAE['arrow_right'], (270, 300))
+            else : 
+                shop_surf.blit(BAG_IMGAE['arrow_right'], (420, 300))
+        
         return shop_surf
 
-
-    def create_shoplist(self):
-        shoplist = []
-        shoplist.append(Items('PokeBall', 10, 'Catching wild Pokémon props','100'))
-        shoplist.append(Items( 'SuperBall', 10, 'Ball for catching wild Pokémon','300'))
-        shoplist.append(Items('MasterBall', 10, 'Captures wild Pokémon without fail','999'))
-        shoplist.append(Items('Potion', 10, 'Allows Pokémon to recover 20HP','100'))
-        shoplist.append(Items('SuperPotion', 10, 'Allows Pokémon to recover 50HP','200'))
-        
-        return shoplist
             
