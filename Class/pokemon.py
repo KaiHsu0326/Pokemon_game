@@ -140,19 +140,27 @@ class Pokemon():
         evol_pkm = None
         evolution_surf = pygame.Surface((X_RANGE, Y_RANGE))
         evolution_surf.blit(pygame.transform.scale(POKEDEX_IMGAE['evolution_bg'], (X_RANGE, Y_RANGE)), (0,0))
+        space_rect = pygame.Rect((330,270, 162, 168))
 
         if timer <= 100:
-            evolution_surf.blit(pygame.transform.scale(self.image_front[self.get_frame_num('front')],(100-int(timer),100-int(timer))), (360,340))
+            pkm = pygame.transform.scale(self.image_front[self.get_frame_num('front')],(self.f_size[0]-(timer-100),self.f_size[1]-(timer-100)))
+            rect = pkm.get_rect()
+            rect.midbottom = space_rect.midbottom
+            evolution_surf.blit(pkm, rect)
             display_text(evolution_surf, 'Your '+ self.name + ' is about to evolve', (150,525), 30)
+            
         else:
             if timer is 101:
                 evol_pkm = Pokemon(self.evol_poke(), self.level)
                 evol_pkm.pre_name = self.name 
-                evolution_surf.blit(pygame.transform.scale(evol_pkm.image_front[self.get_frame_num('front')],(-100+int(timer),-100+int(timer))), (360,340))
                 display_text(evolution_surf, 'Congratulations! '+ self.name + ' evolved into ' + evol_pkm.name, (75,525), 30)
             else :
-                evolution_surf.blit(pygame.transform.scale(self.image_front[self.get_frame_num('front')],(-100+int(timer),-100+int(timer))), (360,340))
                 display_text(evolution_surf, 'Congratulations! '+ self.pre_name + ' evolved into ' + self.name, (75,525), 30)
+
+            pkm = pygame.transform.scale(self.image_front[self.get_frame_num('front')],(self.f_size[0]-101+timer,self.f_size[1]-101+timer))
+            rect = pkm.get_rect()
+            rect.midbottom = space_rect.midbottom
+            evolution_surf.blit(pkm, rect)
 
         return evolution_surf, evol_pkm
 
@@ -638,3 +646,7 @@ class Pokedex():
             self.pokemon_list[self.com_point], self.pokemon_list[self.current_compokemon+6]
 
         self.com_point = 0
+
+    def recover_fight_poke(self):
+        for p in self.pokemon_list[:6]:
+            p.recover()

@@ -38,11 +38,31 @@ TRIGGER_DIR = {1: { 2:'DOWN'},
                6: { 5:'LEFT', 7:'RIGHT'},
                7: { 6:'LEFT'} }
 
-CHALLENGER_SPOT= {2:[(12,5),(8,11)]}
+CHALLENGER_SPOT= {2:[(12,5),(8,11)],
+                  3:[(4,6) ,(12,4)],
+                  4:[(13,6)],
+                  5:[(7,5),(10,14)]}
 
+CHALLENGE_TRIGGER={2:[(13,5), (9,11)],
+                    3:[(5,6), (13,4)],
+                    4:[(13,7)],
+                    5:[(7,6), (11,14)],
+                    7:[(6,4), (6,10), (6,16), (6,22)]}
+
+# test
+# CHALLENGE_TRIGGER={7:[(6,4), (6,10), (6,16), (6,22)]}
+
+SELL_TRIGGER = { 1 :[(6,3)], 4:[(9,7)], 6:[(6,17)]}
+RECOVER_TRIGGER={ 1 :[(6,5)], 6:[(6,19)]}
+
+SELLER_SPOT = { 1 :[(5,3)], 4:[(9,8)], 6:[(5,17)]}
+DOCTOR_SPOT = { 1 :[(5,5)], 6:[(5,19)] }
+
+PRINCESS_SPOT = {7:[(5,4), (5,10), (5,16), (5,22)]}
 
 class Map() :
     x_border = y_border = False
+    challenge = False
     def __init__(self, map_num, from_map_num):
         self.map_num = map_num
         self.map_data = MAPS[map_num]
@@ -58,6 +78,22 @@ class Map() :
             tmp = CONVERSE_EXITS[map_num][from_map_num]
             self.x_screen = tmp[0]
             self.y_screen = tmp[1]
+
+    def is_npc_spot(self, player):
+        if self.map_num in SELL_TRIGGER and player.pos in SELL_TRIGGER[self.map_num]:
+            return 'seller'
+        elif self.map_num in RECOVER_TRIGGER and player.pos in RECOVER_TRIGGER[self.map_num]:
+            return 'doctor'
+        else :None
+
+    def delete_challenge_spot(self):
+        game_over = False
+        if self.map_num is 7:
+            self.map_data[CHALLENGE_TRIGGER[self.map_num][0][0]][CHALLENGE_TRIGGER[self.map_num][0][1]+1] = 'o'
+            if len(self.map_data[CHALLENGE_TRIGGER[self.map_num]]) is 1:
+                game_over = True
+        del CHALLENGE_TRIGGER[self.map_num][0]
+        return game_over
 
     def draw_map( self, player, selectors):
         """Draws the map to a Surface object, including the player's position"""
@@ -89,9 +125,21 @@ class Map() :
                 # Last draw the player on the board.
                 if (r, c) == player.pos:
                     map_surf.blit(SCENSE_IMAGES['boy'], space_rect)
+                    if self.map_num in CHALLENGE_TRIGGER and (r,c) in CHALLENGE_TRIGGER[self.map_num]:
+                        self.challenge = True
+                    else: self.challenge = False
 
                 if self.map_num in CHALLENGER_SPOT and (r, c) in CHALLENGER_SPOT[self.map_num]:
                     map_surf.blit(SCENSE_IMAGES['challenger'], space_rect)
+
+                if self.map_num in SELLER_SPOT and (r, c) in SELLER_SPOT[self.map_num]:
+                    map_surf.blit(SCENSE_IMAGES['seller'], space_rect)
+
+                if self.map_num in DOCTOR_SPOT and (r, c) in DOCTOR_SPOT[self.map_num]:
+                    map_surf.blit(SCENSE_IMAGES['doctor'], space_rect)
+
+                if self.map_num in PRINCESS_SPOT and (r, c) in PRINCESS_SPOT[self.map_num]:
+                    map_surf.blit(SCENSE_IMAGES['princess'], space_rect) 
 
         if map_surf_w < X_RANGE and map_surf_h < Y_RANGE: return map_surf, True
         else : return map_surf, False
@@ -147,6 +195,9 @@ SCENSE_IMAGES = {'selector': pygame.image.load(image_path+'Selector.png'),
               'grass': pygame.image.load(image_path+'Grass_Block.png'),
               'boy': pygame.image.load(image_path+'boy.png'),
               'challenger': pygame.image.load(image_path+'horngirl.png'),
+              'princess': pygame.image.load(image_path+'princess.png'),
+              'doctor': pygame.image.load(image_path+'catgirl.png'),
+              'seller': pygame.image.load(image_path+'pinkgirl.png'),
               'rock': pygame.image.load(image_path+'Rock1.png'),
               'sea': pygame.image.load(image_path+'sea.png')}
 
@@ -184,7 +235,7 @@ boss_map =  [[' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' 
              ['x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#'],
              ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'],
              ['#','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#'],
-             ['o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o','o'],
+             ['o','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#'],
              ['#','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#','o','o','o','o','o','#'],
              ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'],
              ['x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#','x','x','x','x','x','#'],

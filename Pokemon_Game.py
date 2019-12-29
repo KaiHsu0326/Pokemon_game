@@ -18,6 +18,7 @@ class Grass():
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
 pygame.init()
+pygame.mixer.init()
 
 IMAGES = {'title': pygame.image.load(dir_path+'/image/pokemon-logo.png'),
           'cover': pygame.image.load(dir_path+'/image/cover.png'),
@@ -25,8 +26,20 @@ IMAGES = {'title': pygame.image.load(dir_path+'/image/pokemon-logo.png'),
           'choose_poke_bg': pygame.image.load(dir_path+'/image/choose_poke_bg.png'),
           'arrow_up': pygame.image.load(dir_path+'/image/arrow_up.png')}
 
+MUSIC = {'start': dir_path+'/sound/start.mp3',
+         'wild_poke_1' : dir_path+'/sound/wild_poke_1.mp3',
+         'wild_poke_2': dir_path+'/sound/wild_poke_2.mp3',
+         'map1': dir_path+'/sound/map1.mp3',
+         'evolution' : dir_path + '/sound/evolution.mp3',}
+
+# music_paly = False
 ALL_MAPS_DATA = ['']
 for m in MAPS : ALL_MAPS_DATA.append(m)
+
+def play_music(filename,time) :
+    pygame.mixer.music.load(filename)
+    pygame.mixer.music.play(time)
+
 
 def set_state(x,y,all_exit):
     player = Player((x,y))
@@ -110,13 +123,14 @@ def change_situation(add, situ):
 
 choose = timer = pokedex = 1
 situation = ['begin']
-inbox_choice = False
+recovering = inbox_choice = False
 BASE_SURF = pygame.display.set_mode((X_RANGE, Y_RANGE))
 fontObj = pygame.font.Font('freesansbold.ttf', 35)
 current_map = Map(1,-1)
 bag = Bag()
 player,exits= set_state(current_map.x_screen, current_map.y_screen, current_map.exits)
 init_p = [Pokemon(0,5),Pokemon(6,7),Pokemon(3,5)]
+play_music(MUSIC['start'],-1)
 
 while True:
     
@@ -129,13 +143,13 @@ while True:
         
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_LEFT :
-                if get_situation() is not 'begin': move_to = 'LEFT'
+                if get_situation() is not 'begin' and not recovering: move_to = 'LEFT'
             if e.key == pygame.K_RIGHT:
-                if get_situation() is not 'begin': move_to = 'RIGHT'
+                if get_situation() is not 'begin' and not recovering: move_to = 'RIGHT'
             if e.key == pygame.K_UP:
-                if get_situation() is not 'begin': move_to = 'UP'
+                if get_situation() is not 'begin' and not recovering: move_to = 'UP'
             if e.key == pygame.K_DOWN:
-                if get_situation() is not 'begin': move_to = 'DOWN'
+                if get_situation() is not 'begin' and not recovering: move_to = 'DOWN'
 
             if e.key == pygame.K_b and get_situation() is 'walking':
                 change_situation(True, 'bag')
@@ -143,8 +157,8 @@ while True:
             if e.key == pygame.K_c and get_situation() is 'walking': 
                 change_situation(True, 'computer')
 
-            if e.key == pygame.K_s and get_situation() is 'walking': # Transaction 
-                change_situation(True, 'shop')
+            if e.key == pygame.K_e and get_situation() is 'walking': 
+                change_situation(True, 'evolution')
 
             if e.key == pygame.K_x :
                 if inbox_choice: inbox_choice = False
@@ -155,8 +169,14 @@ while True:
                 if get_situation() is 'begin' :
                     change_situation(True, 'choose_poke')
 
+                elif get_situation() is 'walking' and current_map.is_npc_spot(player):
+                    if current_map.is_npc_spot(player) == 'seller':
+                        change_situation(True, 'shop')
+                    elif current_map.is_npc_spot(player) == 'doctor':recovering = True
+
                 elif get_situation() is 'choose_poke' :
                     pokedex = Pokedex(init_p[choose])
+                    play_music(MUSIC['map1'],1) 
                     change_situation(True, 'walking')
 
                 elif get_situation() is 'battle':
@@ -169,12 +189,13 @@ while True:
                     elif choose is 2:
                         change_situation(True, 'pokedex')
                     elif choose is 3:
+                        play_music(MUSIC['map1'],1) 
                         change_situation(False, '')
 
                 elif get_situation() is 'bag': 
                     if not inbox_choice and bag.has_item_inside(): inbox_choice = True
                     elif inbox_choice: 
-                        throw_ball, props = bag.use_props(situation)
+                        throw_ball, props = bag.use_props(situation, current_map.challenge)
                         if throw_ball:
                             battle.set_catch_data(props)
                             change_situation(False, '')
@@ -274,10 +295,19 @@ while True:
             inbox_choice = False
             pokedex.pokemon_list[0].has_level_up = False
             if pokedex.pokemon_list[0].evol_poke():
-                # pokedex.pokemon_list[0] = Pokemon(pokedex.pokemon_list[0].evol_poke(), pokedex.pokemon_list[0].level)
                 change_situation(True, 'evolution')
             if not battle.my_pokemon_die():
                 bag.add_money(battle.get_money())
+
+            if battle.all_pokemon_die():
+                current_map = Map(1,-1)
+                recovering = True
+                player,exits= set_state(6, 5, current_map.exits)
+                
+            elif current_map.challenge:
+                if current_map.delete_challenge_spot():
+                    print('Game_Over')
+            play_music(MUSIC['map1'],1) 
 
         BASE_SURF.blit(bat_surf, (0,0))
         timer += 1
@@ -285,10 +315,15 @@ while True:
 
     elif get_situation() is 'evolution' :
         evol_surf, evol = pokedex.pokemon_list[0].draw_evolution(timer)
-        if evol: pokedex.pokemon_list[0] = evol
+        if evol: 
+            pokedex.pokemon_list[0] = evol
+        if timer is 10:
+            play_music(MUSIC['evolution'],1)
         if timer is 200:
+            time.sleep(1)
+            # music_paly = False
             change_situation(False, '') # pop to walking situation
-            # pokedex.pokemon_list[0] = Pokemon(pokedex.pokemon_list[0].evol_poke(), pokedex.pokemon_list[0].level)
+            play_music(MUSIC['map1'],1) 
         timer += 1
         BASE_SURF.blit(evol_surf, (0,0))
 
@@ -303,11 +338,12 @@ while True:
                 change_situation(False, '') # pop to walking situation
                 pokemon.recover()
                 pokedex.pokemon_list.append(pokemon)
+                play_music(MUSIC['map1'],1) 
             else:
                 change_situation(False, '') # pop to battle situation
 
     elif change_map(move_to):
-        ALL_MAPS_DATA[current_map.map_num] = current_map
+        # ALL_MAPS_DATA[current_map.map_num] = current_map
         current_map = Map(current_map.exits[player.pos], current_map.map_num)
         player,exits= set_state(current_map.x_screen, current_map.y_screen, current_map.exits.keys())
 
@@ -321,12 +357,24 @@ while True:
             BASE_SURF.blit(map_surf, map_surf_rect)
         else : BASE_SURF.blit(map_surf, current_map.get_screen_move())
 
+        if recovering:
+            pygame.draw.rect(BASE_SURF,(255,213,132),(275,100,250,70))
+            textSurfaceObj = fontObj.render('Recovering.....', True, (128,128,128))
+            textRectObj = textSurfaceObj.get_rect()
+            BASE_SURF.blit(textSurfaceObj, (275,120))
+            if timer is 40:
+                pokedex.recover_fight_poke()
+                recovering = False
+                timer = 0
+            timer+= 1
+
         pygame.display.update()
-        if move_to != None and current_map.map_data[player.pos[0]][player.pos[1]] is 'M' :
-            if random.randint(1,10) is 1 : 
+        if move_to != None and current_map.map_data[player.pos[0]][player.pos[1]] is 'M' or current_map.challenge:
+            if random.randint(1,10) is 1 or current_map.challenge: 
                 time.sleep(0.1)           
                 moniter = 0
                 start_time = time.time()
+                play_music(MUSIC['wild_poke_2'],1) 
                 while time.time() - start_time < 1:
                     if moniter is 0: BASE_SURF.fill((0, 0, 0))  
                     elif moniter is 1 : BASE_SURF.fill((255, 255, 255)) 
@@ -340,9 +388,11 @@ while True:
                     time.sleep(0.1)
                     moniter = (moniter+1)%3
 
+                play_music(MUSIC['wild_poke_1'],-1)
                 opp_data = pokedex.bomb_into_poke()
                 battle = Battle(pokedex.pokemon_list[0],Pokemon(opp_data[0],opp_data[1]))
                 battle.set_poke_list(pokedex.pokemon_list[:6])
                 change_situation(True, 'battle')
+                # music_paly = False
 
     pygame.display.update()

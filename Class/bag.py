@@ -159,10 +159,10 @@ class Bag():
     def get_use(self):
         return self.use
 
-    def use_props(self, situ):      
+    def use_props(self, situ, challenge):      
         interface = self.interfaces[self.current_interface]
         props = interface.items[self.current_item]
-        if interface.name == 'Poké balls' and self.use and 'battle' in situ: 
+        if interface.name == 'Poké balls' and self.use and 'battle' in situ and not challenge: 
             return True, props
 
         elif interface.name == 'Items':
@@ -185,8 +185,9 @@ class Bag():
         self.use = False
         return False, None
 
-    def transaction(self) :   
-        self.add_item(shoplist[self.current_shopitem])
+    def transaction(self) :  
+        if int(shoplist[self.current_shopitem].price) < self.money:
+            self.add_item(shoplist[self.current_shopitem])
         self.use = False
 
     def draw_shop(self,move_to, inbox_choice):
